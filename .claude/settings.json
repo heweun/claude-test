@@ -43,8 +43,7 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-commit.sh\"",
-            "timeout": 10,
-            "async": true
+            "timeout": 10
           }
         ]
       }
