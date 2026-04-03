@@ -644,25 +644,34 @@
       };
       const pctOt = otSubjects.map(toPercent);
       const pctFinal = finalSubjects.map(toPercent);
+
+      // OT[i], 최종[i] 교차 배열 — 짝수 인덱스=OT(연한색), 홀수=최종(진한색)
       const labels = [];
       const data = { correct: [], timeout: [], unknown: [], wrong: [] };
       otSubjects.forEach((s, i) => {
-        labels.push(s.name + ' OT');
-        labels.push(s.name + ' 최종');
+        labels.push(s.name);   // OT행: 과목명 저장 (tick callback에서 과목명 표시)
+        labels.push('최종');   // 최종행
         ['correct', 'timeout', 'unknown', 'wrong'].forEach(k => {
           data[k].push(pctOt[i][k]);
           data[k].push(pctFinal[i][k]);
         });
       });
+
+      // 인덱스가 짝수(OT)면 투명색, 홀수(최종)면 원색
+      const colorOf = (hex, i) => i % 2 === 0
+        ? hex.replace(/^#/, 'rgba(').replace(/(..)(..)(..)/, (_, r, g, b) =>
+            `${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`) + ',0.45)'
+        : hex;
+
       new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
           labels,
           datasets: [
-            { label: '정답', data: data.correct, backgroundColor: '#22c55e' },
-            { label: '시간초과', data: data.timeout, backgroundColor: '#facc15' },
-            { label: '모르겠음', data: data.unknown, backgroundColor: '#94a3b8' },
-            { label: '오답', data: data.wrong, backgroundColor: '#f87171' },
+            { label: '정답',    data: data.correct, backgroundColor: data.correct.map((_, i) => colorOf('#22c55e', i)) },
+            { label: '시간초과', data: data.timeout, backgroundColor: data.timeout.map((_, i) => colorOf('#facc15', i)) },
+            { label: '모르겠음', data: data.unknown, backgroundColor: data.unknown.map((_, i) => colorOf('#94a3b8', i)) },
+            { label: '오답',    data: data.wrong,   backgroundColor: data.wrong.map((_, i)   => colorOf('#f87171', i)) },
           ],
         },
         options: {
@@ -670,11 +679,27 @@
           responsive: true,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
+            tooltip: {
+              callbacks: {
+                title: ctx => {
+                  const i = ctx[0].dataIndex;
+                  return i % 2 === 0
+                    ? labels[i] + ' (OT)'
+                    : (i > 0 ? labels[i - 1] : '') + ' (최종)';
+                },
+                label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%`,
+              },
+            },
           },
           scales: {
             x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.06)' } },
-            y: { stacked: true, grid: { display: false } },
+            y: {
+              stacked: true,
+              grid: { display: false },
+              ticks: {
+                callback: (_, index) => index % 2 === 0 ? labels[index] : '  최종',
+              },
+            },
           },
         },
       });
