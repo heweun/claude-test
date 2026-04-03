@@ -645,26 +645,32 @@
       const pctOt = otSubjects.map(toPercent);
       const pctFinal = finalSubjects.map(toPercent);
 
-      // OT[i], 최종[i] 교차 배열 — 짝수 인덱스=OT(연한색), 홀수=최종(진한색)
+      // OT, 최종, spacer 행 구성 — 과목 그룹 사이에 빈 행 삽입
       const labels = [];
+      const rowTypes = []; // 'ot' | 'final' | 'spacer'
       const data = { correct: [], timeout: [], unknown: [], wrong: [] };
       otSubjects.forEach((s, i) => {
-        labels.push(s.name);   // OT행: 과목명 저장 (tick callback에서 과목명 표시)
-        labels.push('최종');   // 최종행
+        labels.push(s.name); rowTypes.push('ot');
+        labels.push('최종'); rowTypes.push('final');
         ['correct', 'timeout', 'unknown', 'wrong'].forEach(k => {
           data[k].push(pctOt[i][k]);
           data[k].push(pctFinal[i][k]);
         });
+        if (i < otSubjects.length - 1) {
+          labels.push(''); rowTypes.push('spacer');
+          ['correct', 'timeout', 'unknown', 'wrong'].forEach(k => data[k].push(null));
+        }
       });
 
-      // 인덱스가 짝수(OT)면 투명색, 홀수(최종)면 원색
       const hexToRgba = (hex, alpha) => {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
         return `rgba(${r},${g},${b},${alpha})`;
       };
-      const colorOf = (hex, i) => i % 2 === 0 ? hexToRgba(hex, 0.45) : hex;
+      const colorOf = (hex, i) =>
+        rowTypes[i] === 'ot' ? hexToRgba(hex, 0.45) :
+        rowTypes[i] === 'spacer' ? 'transparent' : hex;
 
       new Chart(canvas.getContext('2d'), {
         type: 'bar',
@@ -686,9 +692,12 @@
               callbacks: {
                 title: ctx => {
                   const i = ctx[0].dataIndex;
-                  return i % 2 === 0
-                    ? labels[i] + ' (OT)'
-                    : (i > 0 ? labels[i - 1] : '') + ' (최종)';
+                  if (rowTypes[i] === 'ot') return labels[i] + ' (OT)';
+                  if (rowTypes[i] === 'final') {
+                    const subjectIdx = i - 1;
+                    return (subjectIdx >= 0 ? labels[subjectIdx] : '') + ' (최종)';
+                  }
+                  return '';
                 },
                 label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%`,
               },
@@ -700,9 +709,11 @@
               stacked: true,
               grid: { display: false },
               ticks: {
-                callback: (_, index) => index % 2 === 0
-                  ? [labels[index], '  OT']
-                  : '  최종',
+                callback: (_, index) => {
+                  if (rowTypes[index] === 'ot') return [labels[index], '  OT'];
+                  if (rowTypes[index] === 'final') return '  최종';
+                  return '';
+                },
               },
             },
           },
