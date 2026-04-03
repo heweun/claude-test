@@ -2,7 +2,6 @@
 name: merge-pr
 description: PR 머지 전 체크리스트를 확인하고 merge commit 방식으로 머지한 뒤, 브랜치 정리 등 후처리를 자동으로 수행합니다.
 argument-hint: [PR번호]
-disable-model-invocation: true
 allowed-tools: Bash(git *, gh *), Read
 ---
 
