@@ -51,6 +51,10 @@
       .pdf-btn { display: none; }
       .section { break-inside: avoid; }
       header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      /* 비활성 시험 탭도 모두 출력 */
+      .exam-bar { display: block !important; }
+      .exam-bar + .exam-bar { border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 24px; }
+      .exam-score-card { border-color: transparent !important; cursor: default; }
     }
 
     /* ── 공통 섹션 ── */
@@ -508,6 +512,15 @@ const scrumData = [
     </div>
   `;
 })();
+
+/* ── PDF 출력 시 사전 처리 ── */
+window.onbeforeprint = function() {
+  // 최종 탭 차트가 아직 초기화 안 됐으면 사전 렌더링
+  if (!finalChartBuilt) {
+    buildBarChart('barChartFinal', examData.final.subjects);
+    finalChartBuilt = true;
+  }
+};
 </script>
 </body>
 </html>
