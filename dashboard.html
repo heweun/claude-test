@@ -107,8 +107,8 @@
         cursor: default;
       }
 
-      /* 범례 색상 점 출력 */
-      .legend-dot {
+      /* 범례 색상 점 + 시험 배경색 출력 */
+      .legend-dot, .bar-wrap, .exam-bar-title {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -249,11 +249,26 @@
     }
 
     .bar-wrap {
-      background: #fff;
       border-radius: 16px;
       padding: 28px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
+      border-left: 5px solid transparent;
     }
+    #bar-ot .bar-wrap {
+      background: #f0f5ff;
+      border-left-color: #0f3460;
+    }
+    #bar-final .bar-wrap {
+      background: #fff5f6;
+      border-left-color: #e94560;
+    }
+    .exam-bar-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    #bar-ot .exam-bar-title { color: #0f3460; }
+    #bar-final .exam-bar-title { color: #e94560; }
 
     .bar-legend {
       display: flex;
@@ -489,6 +504,7 @@
     <!-- OT 바 차트 -->
     <div class="exam-bar active" id="bar-ot">
       <div class="bar-wrap">
+        <div class="exam-bar-title">OT 시험</div>
         <div class="bar-legend">
           <div class="legend-item">
             <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
@@ -510,6 +526,7 @@
     <!-- 최종 바 차트 -->
     <div class="exam-bar" id="bar-final">
       <div class="bar-wrap">
+        <div class="exam-bar-title">최종 시험</div>
         <div class="bar-legend">
           <div class="legend-item">
             <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
