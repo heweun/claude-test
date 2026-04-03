@@ -85,6 +85,9 @@
         break-inside: avoid;
       }
 
+      /* 섹션 제목 직후 페이지 넘김 방지 */
+      .section-title { break-after: avoid; }
+
       header {
         background: #1a1a2e !important;
         -webkit-print-color-adjust: exact;
@@ -108,7 +111,9 @@
       }
 
       /* 범례 색상 점 + 시험 배경색 출력 */
-      .legend-dot, .bar-wrap, .exam-bar-title {
+      .legend-dot,
+      .bar-wrap,
+      .exam-bar-title {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -119,6 +124,7 @@
       .bar-wrap canvas {
         max-height: 200px !important;
       }
+
       /* 레이더 차트: 비율 유지하면서 크기 제한 */
       .radar-chart-container {
         max-width: 360px !important;
@@ -254,21 +260,30 @@
       box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
       border-left: 5px solid transparent;
     }
+
     #bar-ot .bar-wrap {
       background: #f0f5ff;
       border-left-color: #0f3460;
     }
+
     #bar-final .bar-wrap {
       background: #fff5f6;
       border-left-color: #e94560;
     }
+
     .exam-bar-title {
       font-size: 1rem;
       font-weight: 700;
       margin-bottom: 16px;
     }
-    #bar-ot .exam-bar-title { color: #0f3460; }
-    #bar-final .exam-bar-title { color: #e94560; }
+
+    #bar-ot .exam-bar-title {
+      color: #0f3460;
+    }
+
+    #bar-final .exam-bar-title {
+      color: #e94560;
+    }
 
     .bar-legend {
       display: flex;
@@ -829,6 +844,15 @@
     <p class="description">
       AEGIS - VLM 기반 실시간 이상행동 감지 및 자율 대응형 AI 관제 에이전트
       VLM이 실시간으로 CCTV 영상을 분석해 이상행동을 감지하면, 자동 요약 리포트를 작성하고 Agent가 스스로 판단하여 대응하는 AI CCTV 관제 시스템.
+    </p>
+    <h3>주요 기능</h3>
+    <p class="description">
+      - 실시간 알림 및 통합 대시보드 <br>
+      - 위험도에 따라 상황 감지 알림 전송 <br>
+      - AI 자동 리포트 작성 <br>
+      - 위험도 판단하고, 보고서 자동 작성, AI가 영상 속 상황을 자연어로 설명 <br>
+      - 사건 이력 관리 <br>
+      - 사건 발생 시점의 영상 자동 녹화, 사건 발생 이력 통계 제공 <br>
     </p>
     <div class="skills-list">
       ${techs.map(t => `<span class="skill-tag">${escapeHtml(t)}</span>`).join('')}
