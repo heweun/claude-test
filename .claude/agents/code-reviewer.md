@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: PR 변경사항을 분석하여 보안, 품질, 성능 이슈를 코드 리뷰하고 결과를 gh pr comment로 PR에 자동 게시합니다. /create-pr 스킬에서 PR 생성 후 자동 호출됩니다.
-tools: Read, Glob, Grep, Bash(git diff *, gh pr *, git log *)
+tools: Read, Glob, Grep, Bash(git diff *, git log *, gh pr *)
 model: sonnet
 permissionMode: auto
 maxTurns: 20
@@ -12,8 +12,9 @@ color: blue
 
 ## 프로세스
 
-1. `git diff main...HEAD 2>/dev/null || git diff HEAD~1` 로 변경사항 확인
-2. 실제 이슈만 골라 아래 형식으로 게시
+1. `git log --oneline main..HEAD 2>/dev/null || git log --oneline -5` 로 커밋 목록 파악
+2. `git diff main...HEAD 2>/dev/null || git diff HEAD~1` 로 변경사항 확인
+3. 실제 이슈만 골라 아래 형식으로 게시
 
 ## 리뷰 형식
 
