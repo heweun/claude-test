@@ -105,24 +105,6 @@
     }
 
     /* ── 시험 결과 ── */
-    .score-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .score-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 24px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
-      text-align: center;
-    }
-    .score-card .label { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
-    .score-card .score { font-size: 3rem; font-weight: 800; line-height: 1; }
-    .score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
-    .score-ot   .score { color: #0f3460; }
-    .score-final .score { color: #e94560; }
     /* ── 시험 탭 ── */
     .exam-tabs {
       display: flex;
@@ -454,14 +436,23 @@ function buildBarChart(canvasId, subjects) {
   });
 }
 
-buildBarChart('barChartOt',    examData.ot.subjects);
-buildBarChart('barChartFinal', examData.final.subjects);
+// OT 탭은 초기에 바로 렌더링
+buildBarChart('barChartOt', examData.ot.subjects);
+
+// 최종 탭은 첫 클릭 시 lazy 초기화
+let finalChartBuilt = false;
 
 function switchExamTab(tab, btn) {
   document.querySelectorAll('.exam-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.exam-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('panel-' + tab).classList.add('active');
+  const panel = document.getElementById('panel-' + tab);
+  if (!panel) return;
+  panel.classList.add('active');
+  if (tab === 'final' && !finalChartBuilt) {
+    buildBarChart('barChartFinal', examData.final.subjects);
+    finalChartBuilt = true;
+  }
 }
 
 /* ── 데일리 스크럼 데이터 ── */
