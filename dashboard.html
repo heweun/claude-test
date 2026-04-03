@@ -421,6 +421,7 @@ function buildBarChart(canvasId, subjects) {
   if (!canvas) return;
   const toPercent = s => {
     const total = s.correct + s.timeout + s.unknown + s.wrong;
+    if (total === 0) return { correct: 0, timeout: 0, unknown: 0, wrong: 0 };
     return {
       correct: +(s.correct / total * 100).toFixed(1),
       timeout: +(s.timeout / total * 100).toFixed(1),
@@ -505,7 +506,7 @@ function renderScrumRows(rows) {
 }
 
 function renderScrumPage(page) {
-  const totalPages = Math.ceil(scrumData.length / SCRUM_PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(scrumData.length / SCRUM_PAGE_SIZE));
   currentPage = Math.max(1, Math.min(page, totalPages));
   const start = (currentPage - 1) * SCRUM_PAGE_SIZE;
   renderScrumRows(scrumData.slice(start, start + SCRUM_PAGE_SIZE));
