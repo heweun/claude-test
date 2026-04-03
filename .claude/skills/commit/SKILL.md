@@ -10,6 +10,23 @@ allowed-tools: Bash(git *), Read
 
 ## 동작 순서
 
+### 0단계: 브랜치 확인 (최우선)
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+현재 브랜치가 `main`, `master`, `dev`, `develop`, `release`, `staging` 중 하나이면 **즉시 중단**합니다:
+
+```
+🚫 현재 브랜치가 'main'입니다. 보호 브랜치에서는 커밋할 수 없습니다.
+
+  git checkout -b feat/기능명
+  git checkout -b fix/버그명
+
+작업용 브랜치를 생성 후 다시 실행하세요.
+```
+
 ### 1단계: 전체 변경사항 파악
 
 ```
@@ -81,16 +98,13 @@ refactor: 유저 서비스 의존성 분리
 
 ### 4단계: 커밋 실행
 
-Co-Author 훅이 Claude 커밋임을 인식할 수 있도록 플래그 파일을 먼저 생성합니다.
-플래그 생성 실패(`.git/` 권한 문제 등) 시에도 커밋은 진행합니다 (`||` 사용):
-
 ```bash
-touch .git/CLAUDE_COMMITTING || true; git commit -m "type(scope): 한국어 설명"
+git commit -m "type(scope): 한국어 설명"
 ```
 
 멀티라인이 필요한 경우:
 ```bash
-touch .git/CLAUDE_COMMITTING || true; git commit -m "$(cat <<'EOF'
+git commit -m "$(cat <<'EOF'
 type(scope): 한국어 요약
 
 - 세부 변경사항 1
