@@ -178,6 +178,26 @@
       font-weight: 600;
       white-space: nowrap;
     }
+    .scrum-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .scrum-pagination button {
+      padding: 6px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f3460;
+      cursor: pointer;
+    }
+    .scrum-pagination button:disabled { color: #ccc; cursor: default; }
+    .scrum-pagination .page-info { font-size: 0.875rem; color: #666; }
+    @media print { .scrum-pagination { display: none; } }
 
     /* ── 포트폴리오 ── */
     .portfolio-card {
@@ -262,6 +282,11 @@
       </thead>
       <tbody id="scrumBody"></tbody>
     </table>
+  </div>
+  <div class="scrum-pagination" id="scrumPagination">
+    <button id="scrumPrev" onclick="moveScrumPage(-1)">이전</button>
+    <span class="page-info" id="scrumPageInfo"></span>
+    <button id="scrumNext" onclick="moveScrumPage(1)">다음</button>
   </div>
 </div>
 
@@ -460,18 +485,46 @@ const scrumData = [
   { date: '04/02', problem: '코드 리뷰 피드백 반영 지연', solution: 'PR 템플릿과 체크리스트 도입', result: '리뷰 사이클 2일 → 반일로 단축' },
 ];
 
-(function buildScrum() {
+/* ── 스크럼 페이지네이션 ── */
+const SCRUM_PAGE_SIZE = 10;
+let currentPage = 1;
+
+function scrumRowHtml(row) {
+  return `<tr>
+    <td><span class="date-badge">${escapeHtml(row.date)}</span></td>
+    <td>${escapeHtml(row.problem)}</td>
+    <td>${escapeHtml(row.solution)}</td>
+    <td>${escapeHtml(row.result)}</td>
+  </tr>`;
+}
+
+function renderScrumRows(rows) {
   const tbody = document.getElementById('scrumBody');
   if (!tbody) return;
-  tbody.innerHTML = scrumData.map(row =>
-    `<tr>
-      <td><span class="date-badge">${escapeHtml(row.date)}</span></td>
-      <td>${escapeHtml(row.problem)}</td>
-      <td>${escapeHtml(row.solution)}</td>
-      <td>${escapeHtml(row.result)}</td>
-    </tr>`
-  ).join('');
-})();
+  tbody.innerHTML = rows.map(scrumRowHtml).join('');
+}
+
+function renderScrumPage(page) {
+  const totalPages = Math.ceil(scrumData.length / SCRUM_PAGE_SIZE);
+  currentPage = Math.max(1, Math.min(page, totalPages));
+  const start = (currentPage - 1) * SCRUM_PAGE_SIZE;
+  renderScrumRows(scrumData.slice(start, start + SCRUM_PAGE_SIZE));
+
+  const pageInfo = document.getElementById('scrumPageInfo');
+  const prevBtn  = document.getElementById('scrumPrev');
+  const nextBtn  = document.getElementById('scrumNext');
+  const pagination = document.getElementById('scrumPagination');
+
+  if (pageInfo) pageInfo.textContent = `${currentPage} / ${totalPages}`;
+  if (prevBtn)  prevBtn.disabled  = currentPage === 1;
+  if (nextBtn)  nextBtn.disabled  = currentPage === totalPages;
+  // 전체가 한 페이지면 페이지네이션 숨김
+  if (pagination) pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
+}
+
+function moveScrumPage(delta) { renderScrumPage(currentPage + delta); }
+
+renderScrumPage(1);
 
 /* ── 포트폴리오 — 스크럼 데이터 기반 자동 생성 ── */
 (function buildPortfolio() {
@@ -520,6 +573,12 @@ window.onbeforeprint = function() {
     buildBarChart('barChartFinal', examData.final.subjects);
     finalChartBuilt = true;
   }
+  // 스크럼 전체 행 렌더링 (페이지네이션 무시)
+  renderScrumRows(scrumData);
+};
+window.onafterprint = function() {
+  // 인쇄 완료 후 현재 페이지로 복원
+  renderScrumPage(currentPage);
 };
 </script>
 </body>
