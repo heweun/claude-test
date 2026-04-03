@@ -24,12 +24,6 @@
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/co-author-inject.sh\"",
-            "timeout": 10,
-            "statusMessage": "Co-Author 삽입 중..."
-          },
-          {
-            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-test.sh\"",
             "timeout": 150,
             "statusMessage": "테스트 실행 중..."
