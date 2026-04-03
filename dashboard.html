@@ -33,6 +33,25 @@
     }
     header h1 { font-size: 1.6rem; font-weight: 700; }
     header p  { font-size: 0.9rem; opacity: .7; margin-top: 4px; }
+    .pdf-btn {
+      margin-left: auto;
+      padding: 10px 20px;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pdf-btn:hover { background: #c73652; }
+    @media print {
+      .pdf-btn { display: none; }
+      .section { break-inside: avoid; }
+      header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
 
     /* ── 공통 섹션 ── */
     .section {
@@ -186,6 +205,7 @@
     <h1>김수강 · 성장 대시보드</h1>
     <p>풀스택 웹 개발 과정 · 2025년 1분기</p>
   </div>
+  <button class="pdf-btn" onclick="window.print()">PDF 다운로드</button>
 </header>
 
 <!-- ── 역량 레이더 차트 ── -->
