@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>성장 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -23,16 +30,32 @@
       align-items: center;
       gap: 24px;
     }
+
     .avatar {
-      width: 72px; height: 72px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       background: #e94560;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; font-weight: 700; color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
       flex-shrink: 0;
     }
-    header h1 { font-size: 1.6rem; font-weight: 700; }
-    header p  { font-size: 0.9rem; opacity: .7; margin-top: 4px; }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      opacity: .7;
+      margin-top: 4px;
+    }
+
     .pdf-btn {
       margin-left: auto;
       padding: 10px 20px;
@@ -46,15 +69,80 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .pdf-btn:hover { background: #c73652; }
+
+    .pdf-btn:hover {
+      background: #c73652;
+    }
+
     @media print {
-      .pdf-btn { display: none; }
-      .section { break-inside: avoid; }
-      header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .pdf-btn {
+        display: none;
+      }
+
+      .bar-wrap,
+      .radar-wrap {
+        break-inside: avoid;
+      }
+
+      /* 섹션 제목 직후 페이지 넘김 방지 */
+      .section-title {
+        break-after: avoid;
+      }
+
+      /* 스크럼 행: 각 행이 자연스럽게 페이지를 넘을 수 있도록 */
+      .scrum-table tr {
+        break-inside: avoid;
+      }
+
+      header {
+        background: #1a1a2e !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
       /* 비활성 시험 탭도 모두 출력 */
-      .exam-bar { display: block !important; }
-      .exam-bar + .exam-bar { border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 24px; }
-      .exam-score-card { border-color: transparent !important; cursor: default; }
+      .exam-bar {
+        display: block !important;
+        break-inside: avoid;
+      }
+
+      .exam-bar+.exam-bar {
+        border-top: 1px solid #e2e8f0;
+        margin-top: 24px;
+        padding-top: 24px;
+      }
+
+      .exam-score-card {
+        border-color: transparent !important;
+        cursor: default;
+      }
+
+      /* 범례 색상 점 + 시험 배경색 출력 */
+      .legend-dot,
+      .bar-wrap,
+      .exam-bar-title {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* 범례와 차트가 페이지 경계에서 분리되지 않도록 */
+
+      /* 바 차트만 높이 제한 (레이더는 정사각형 유지) */
+      .bar-wrap canvas {
+        max-height: 200px !important;
+        width: 100% !important;
+      }
+
+      /* 레이더 차트: 비율 유지하면서 크기 제한 */
+      .radar-chart-container {
+        max-width: 360px !important;
+      }
+
+      /* 섹션 간 여백 */
+      .section {
+        margin-top: 40px;
+        margin-bottom: 40px;
+      }
     }
 
     /* ── 공통 섹션 ── */
@@ -63,6 +151,7 @@
       margin: 32px auto;
       padding: 0 24px;
     }
+
     .section-title {
       font-size: 1.15rem;
       font-weight: 700;
@@ -80,30 +169,35 @@
       background: #fff;
       border-radius: 16px;
       padding: 32px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     .radar-chart-container {
       width: 100%;
       max-width: 480px;
       position: relative;
     }
+
     .radar-legend {
       display: flex;
       gap: 24px;
       margin-top: 20px;
       justify-content: center;
     }
+
     .legend-item {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 0.875rem;
     }
+
     .legend-dot {
-      width: 14px; height: 14px;
+      width: 14px;
+      height: 14px;
       border-radius: 3px;
       flex-shrink: 0;
     }
@@ -113,35 +207,104 @@
     .exam-score-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
+
     .exam-score-card {
       background: #fff;
-      border-radius: 16px;
-      padding: 24px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      border-radius: 12px;
+      padding: 12px 20px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
       text-align: center;
       cursor: pointer;
       border: 2px solid transparent;
       transition: border-color .15s, box-shadow .15s;
     }
-    .exam-score-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
-    .exam-score-card .label { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
-    .exam-score-card .score { font-size: 3rem; font-weight: 800; line-height: 1; }
-    .exam-score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
-    .card-ot   .score { color: #0f3460; }
-    .card-ot.active   { border-color: #0f3460; }
-    .card-final .score { color: #e94560; }
-    .card-final.active { border-color: #e94560; }
-    .exam-bar { display: none; }
-    .exam-bar.active { display: block; }
+
+    .exam-score-card:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .12);
+    }
+
+    .exam-score-card .label {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .exam-score-card .score {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .exam-score-card .total {
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .card-ot .score {
+      color: #0f3460;
+    }
+
+    .card-ot.active {
+      border-color: #0f3460;
+    }
+
+    .card-final .score {
+      color: #e94560;
+    }
+
+    .card-final.active {
+      border-color: #e94560;
+    }
+
+    .exam-bar {
+      display: none;
+    }
+
+    .exam-bar.active {
+      display: block;
+    }
+
     .bar-wrap {
-      background: #fff;
       border-radius: 16px;
       padding: 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
+      border-left: 5px solid transparent;
+      overflow: hidden;
     }
+
+    .bar-wrap canvas {
+      width: 100% !important;
+      display: block;
+    }
+
+    #bar-ot .bar-wrap {
+      background: #f0f5ff;
+      border-left-color: #0f3460;
+    }
+
+    #bar-final .bar-wrap {
+      background: #fff5f6;
+      border-left-color: #e94560;
+    }
+
+    .exam-bar-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    #bar-ot .exam-bar-title {
+      color: #0f3460;
+    }
+
+    #bar-final .exam-bar-title {
+      color: #e94560;
+    }
+
     .bar-legend {
       display: flex;
       gap: 20px;
@@ -154,20 +317,41 @@
       background: #fff;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
     }
-    .scrum-table { width: 100%; border-collapse: collapse; }
-    .scrum-table thead tr { background: #0f3460; color: #fff; }
-    .scrum-table th, .scrum-table td {
+
+    .scrum-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .scrum-table thead tr {
+      background: #0f3460;
+      color: #fff;
+    }
+
+    .scrum-table th,
+    .scrum-table td {
       padding: 14px 18px;
       text-align: left;
       font-size: 0.875rem;
       border-bottom: 1px solid #f0f2f5;
       vertical-align: top;
     }
-    .scrum-table th { font-weight: 600; white-space: nowrap; }
-    .scrum-table tr:last-child td { border-bottom: none; }
-    .scrum-table tbody tr:hover { background: #f8f9ff; }
+
+    .scrum-table th {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .scrum-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .scrum-table tbody tr:hover {
+      background: #f8f9ff;
+    }
+
     .date-badge {
       display: inline-block;
       background: #eef1f8;
@@ -178,6 +362,7 @@
       font-weight: 600;
       white-space: nowrap;
     }
+
     .scrum-pagination {
       display: flex;
       align-items: center;
@@ -185,6 +370,7 @@
       gap: 12px;
       margin-top: 16px;
     }
+
     .scrum-pagination button {
       padding: 6px 16px;
       border: 1px solid #e2e8f0;
@@ -195,367 +381,498 @@
       color: #0f3460;
       cursor: pointer;
     }
-    .scrum-pagination button:disabled { color: #ccc; cursor: default; }
-    .scrum-pagination .page-info { font-size: 0.875rem; color: #666; }
-    @media print { .scrum-pagination { display: none; } }
+
+    .scrum-pagination button:disabled {
+      color: #ccc;
+      cursor: default;
+    }
+
+    .scrum-pagination .page-info {
+      font-size: 0.875rem;
+      color: #666;
+    }
+
+    @media print {
+      .scrum-pagination {
+        display: none;
+      }
+    }
 
     /* ── 포트폴리오 ── */
     .portfolio-card {
       background: #fff;
       border-radius: 16px;
       padding: 32px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
     }
-    .portfolio-card h3 { font-size: 1.2rem; font-weight: 700; color: #0f3460; margin-bottom: 12px; }
-    .portfolio-card .description { font-size: 0.9rem; color: #555; line-height: 1.7; margin-bottom: 20px; }
-    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+
+    .portfolio-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin-bottom: 12px;
+    }
+
+    .portfolio-card .description {
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
     .skill-tag {
-      background: #eef1f8; color: #0f3460;
-      padding: 4px 12px; border-radius: 20px;
-      font-size: 0.8rem; font-weight: 600;
+      background: #eef1f8;
+      color: #0f3460;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
-    .achievements { border-top: 1px solid #f0f2f5; padding-top: 20px; }
-    .achievements h4 { font-size: 0.9rem; font-weight: 700; color: #e94560; margin-bottom: 12px; }
+
+    .achievements {
+      border-top: 1px solid #f0f2f5;
+      padding-top: 20px;
+    }
+
+    .achievements h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #e94560;
+      margin-bottom: 12px;
+    }
+
     .achievement-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      margin-bottom: 8px; font-size: 0.875rem; color: #444;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+      color: #444;
     }
-    .achievement-item::before { content: '▸'; color: #e94560; flex-shrink: 0; margin-top: 1px; }
+
+    .achievement-item::before {
+      content: '▸';
+      color: #e94560;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
 
     @media (max-width: 640px) {
-      header { padding: 24px 20px; }
-      .section { padding: 0 12px; }
-      .score-cards { grid-template-columns: 1fr; }
+      header {
+        padding: 24px 20px;
+      }
+
+      .section {
+        padding: 0 12px;
+      }
+
+      .score-cards {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- ── 헤더 ── -->
-<header>
-  <div class="avatar">김</div>
-  <div>
-    <h1>김수강 · 성장 대시보드</h1>
-    <p>풀스택 웹 개발 과정 · 2025년 1분기</p>
-  </div>
-  <button class="pdf-btn" onclick="window.print()">PDF 다운로드</button>
-</header>
-
-<!-- ── 역량 레이더 차트 ── -->
-<div class="section">
-  <div class="section-title">역량 변화 (수강 전 vs 후)</div>
-  <div class="radar-wrap">
-    <div class="radar-chart-container">
-      <canvas id="radarChart"></canvas>
+  <!-- ── 헤더 ── -->
+  <header>
+    <div class="avatar">김</div>
+    <div>
+      <h1>김수강 · 성장 대시보드</h1>
+      <p>풀스택 웹 개발 과정 · 2025년 1분기</p>
     </div>
-    <div class="radar-legend">
-      <div class="legend-item">
-        <div class="legend-dot" style="background:rgba(59,130,246,.6);border:2px solid #3b82f6;"></div>
-        <span>수강 전</span>
+    <button class="pdf-btn" onclick="window.print()">PDF 다운로드</button>
+  </header>
+
+  <!-- ── 역량 레이더 차트 ── -->
+  <div class="section">
+    <div class="section-title">역량 변화 (수강 전 vs 후)</div>
+    <div class="radar-wrap">
+      <div class="radar-chart-container">
+        <canvas id="radarChart"></canvas>
       </div>
-      <div class="legend-item">
-        <div class="legend-dot" style="background:rgba(233,69,96,.6);border:2px solid #e94560;"></div>
-        <span>수강 후</span>
+      <div class="radar-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:rgba(59,130,246,.6);border:2px solid #3b82f6;"></div>
+          <span>수강 전</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:rgba(233,69,96,.6);border:2px solid #e94560;"></div>
+          <span>수강 후</span>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ── 포트폴리오 ── -->
-<div class="section">
-  <div class="section-title">포트폴리오</div>
-  <div class="portfolio-card" id="portfolioCard"></div>
-</div>
-
-<!-- ── 데일리 스크럼 ── -->
-<div class="section">
-  <div class="section-title">데일리 스크럼</div>
-  <div class="scrum-table-wrap">
-    <table class="scrum-table">
-      <thead>
-        <tr>
-          <th>날짜</th>
-          <th>문제</th>
-          <th>해결방안</th>
-          <th>결과</th>
-        </tr>
-      </thead>
-      <tbody id="scrumBody"></tbody>
-    </table>
-  </div>
-  <div class="scrum-pagination" id="scrumPagination">
-    <button id="scrumPrev" onclick="moveScrumPage(-1)">이전</button>
-    <span class="page-info" id="scrumPageInfo"></span>
-    <button id="scrumNext" onclick="moveScrumPage(1)">다음</button>
-  </div>
-</div>
-
-<!-- ── 시험 결과 ── -->
-<div class="section">
-  <div class="section-title">시험 결과</div>
-
-  <!-- 점수 카드가 탭 역할 -->
-  <div class="exam-score-cards">
-    <div class="exam-score-card card-ot active" onclick="switchExamTab('ot', this)">
-      <div class="label">OT 시험</div>
-      <div class="score">62</div>
-      <div class="total">/ 100점</div>
-    </div>
-    <div class="exam-score-card card-final" onclick="switchExamTab('final', this)">
-      <div class="label">최종 시험</div>
-      <div class="score">88</div>
-      <div class="total">/ 100점</div>
-    </div>
+  <!-- ── 포트폴리오 ── -->
+  <div class="section">
+    <div class="section-title">포트폴리오</div>
+    <div class="portfolio-card" id="portfolioCard"></div>
   </div>
 
-  <!-- OT 바 차트 -->
-  <div class="exam-bar active" id="bar-ot">
-    <div class="bar-wrap">
-      <div class="bar-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+  <!-- ── 시험 결과 ── -->
+  <div class="section">
+    <div class="section-title">시험 결과</div>
+
+    <!-- 점수 카드가 탭 역할 -->
+    <div class="exam-score-cards">
+      <div class="exam-score-card card-ot active" onclick="switchExamTab('ot', this)">
+        <div class="label">OT 시험</div>
+        <div class="score">62</div>
+        <div class="total">/ 100점</div>
       </div>
-      <canvas id="barChartOt"></canvas>
-    </div>
-  </div>
-
-  <!-- 최종 바 차트 -->
-  <div class="exam-bar" id="bar-final">
-    <div class="bar-wrap">
-      <div class="bar-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+      <div class="exam-score-card card-final" onclick="switchExamTab('final', this)">
+        <div class="label">최종 시험</div>
+        <div class="score">88</div>
+        <div class="total">/ 100점</div>
       </div>
-      <canvas id="barChartFinal"></canvas>
+    </div>
+
+    <!-- OT 바 차트 -->
+    <div class="exam-bar active" id="bar-ot">
+      <div class="bar-wrap">
+        <div class="exam-bar-title">OT 시험</div>
+        <div class="bar-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#f87171;"></div><span>오답</span>
+          </div>
+        </div>
+        <canvas id="barChartOt"></canvas>
+      </div>
+    </div>
+
+    <!-- 최종 바 차트 -->
+    <div class="exam-bar" id="bar-final">
+      <div class="bar-wrap">
+        <div class="exam-bar-title">최종 시험</div>
+        <div class="bar-legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#f87171;"></div><span>오답</span>
+          </div>
+        </div>
+        <canvas id="barChartFinal"></canvas>
+      </div>
     </div>
   </div>
-</div>
 
-<div style="height: 48px;"></div>
-<script>
-/* ── 공통 유틸 ── */
-const escapeHtml = str =>
-  str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  <!-- ── 데일리 스크럼 ── -->
+  <div class="section">
+    <div class="section-title">데일리 스크럼</div>
+    <div class="scrum-table-wrap">
+      <table class="scrum-table">
+        <thead>
+          <tr>
+            <th>날짜</th>
+            <th>문제</th>
+            <th>해결방안</th>
+            <th>결과</th>
+          </tr>
+        </thead>
+        <tbody id="scrumBody"></tbody>
+      </table>
+    </div>
+    <div class="scrum-pagination" id="scrumPagination">
+      <button id="scrumPrev" onclick="moveScrumPage(-1)">이전</button>
+      <span class="page-info" id="scrumPageInfo"></span>
+      <button id="scrumNext" onclick="moveScrumPage(1)">다음</button>
+    </div>
+  </div>
 
-/* ── 레이더 데이터 ── */
-const radarData = Object.freeze({
-  labels: ['알고리즘', '자료구조', '데이터베이스', '네트워크', '운영체제', '협업능력'],
-  before: [2, 3, 2, 1, 2, 4],
-  after:  [4, 5, 4, 3, 3, 5],
-});
+  <div style="height: 48px;"></div>
+  <script>
+    /* ── 공통 유틸 ── */
+    const escapeHtml = str =>
+      str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-(function buildRadar() {
-  const canvas = document.getElementById('radarChart');
-  if (!canvas) return;
-  new Chart(canvas.getContext('2d'), {
-    type: 'radar',
-    data: {
-      labels: radarData.labels,
-      datasets: [
-        {
-          label: '수강 전',
-          data: radarData.before,
-          backgroundColor: 'rgba(59,130,246,0.2)',
-          borderColor: '#3b82f6',
-          borderWidth: 2,
-          pointBackgroundColor: '#3b82f6',
-          pointRadius: 4,
+    /* ── 레이더 데이터 ── */
+    const radarData = Object.freeze({
+      labels: ['알고리즘', '자료구조', '데이터베이스', '네트워크', '운영체제', '협업능력'],
+      before: [2, 3, 2, 1, 2, 4],
+      after: [4, 5, 4, 3, 3, 5],
+    });
+
+    (function buildRadar() {
+      const canvas = document.getElementById('radarChart');
+      if (!canvas) return;
+      new Chart(canvas.getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: radarData.labels,
+          datasets: [
+            {
+              label: '수강 전',
+              data: radarData.before,
+              backgroundColor: 'rgba(59,130,246,0.2)',
+              borderColor: '#3b82f6',
+              borderWidth: 2,
+              pointBackgroundColor: '#3b82f6',
+              pointRadius: 4,
+            },
+            {
+              label: '수강 후',
+              data: radarData.after,
+              backgroundColor: 'rgba(233,69,96,0.2)',
+              borderColor: '#e94560',
+              borderWidth: 2,
+              pointBackgroundColor: '#e94560',
+              pointRadius: 4,
+            },
+          ],
         },
-        {
-          label: '수강 후',
-          data: radarData.after,
-          backgroundColor: 'rgba(233,69,96,0.2)',
-          borderColor: '#e94560',
-          borderWidth: 2,
-          pointBackgroundColor: '#e94560',
-          pointRadius: 4,
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0, max: 5,
+              ticks: { stepSize: 1, font: { size: 11 } },
+              pointLabels: { font: { size: 13, weight: '600' } },
+              grid: { color: 'rgba(0,0,0,.08)' },
+              angleLines: { color: 'rgba(0,0,0,.08)' },
+            },
+          },
         },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        r: {
-          min: 0, max: 5,
-          ticks: { stepSize: 1, font: { size: 11 } },
-          pointLabels: { font: { size: 13, weight: '600' } },
-          grid: { color: 'rgba(0,0,0,.08)' },
-          angleLines: { color: 'rgba(0,0,0,.08)' },
+      });
+    })();
+
+    /* ── 시험 결과 데이터 (OT / 최종 분리) ── */
+    const examData = Object.freeze({
+      ot: {
+        score: 62,
+        subjects: [
+          { name: 'Python 기초', correct: 5, timeout: 3, unknown: 2, wrong: 2 },
+          { name: '자료구조', correct: 4, timeout: 3, unknown: 3, wrong: 3 },
+          { name: '데이터베이스', correct: 5, timeout: 2, unknown: 2, wrong: 3 },
+          { name: '웹 프레임워크', correct: 6, timeout: 2, unknown: 1, wrong: 3 },
+          { name: '알고리즘', correct: 3, timeout: 4, unknown: 3, wrong: 2 },
+        ],
+      },
+      final: {
+        score: 88,
+        subjects: [
+          { name: 'Python 기초', correct: 8, timeout: 2, unknown: 1, wrong: 1 },
+          { name: '자료구조', correct: 6, timeout: 3, unknown: 2, wrong: 2 },
+          { name: '데이터베이스', correct: 7, timeout: 1, unknown: 1, wrong: 3 },
+          { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
+          { name: '알고리즘', correct: 5, timeout: 4, unknown: 2, wrong: 1 },
+        ],
+      },
+    });
+
+    function buildBarChart(canvasId, subjects) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const toPercent = s => {
+        const total = s.correct + s.timeout + s.unknown + s.wrong;
+        if (total === 0) return { correct: 0, timeout: 0, unknown: 0, wrong: 0 };
+        return {
+          correct: +(s.correct / total * 100).toFixed(1),
+          timeout: +(s.timeout / total * 100).toFixed(1),
+          unknown: +(s.unknown / total * 100).toFixed(1),
+          wrong: +(s.wrong / total * 100).toFixed(1),
+        };
+      };
+      const pct = subjects.map(toPercent);
+      new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: subjects.map(s => s.name),
+          datasets: [
+            { label: '정답', data: pct.map(p => p.correct), backgroundColor: '#22c55e' },
+            { label: '시간초과', data: pct.map(p => p.timeout), backgroundColor: '#facc15' },
+            { label: '모르겠음', data: pct.map(p => p.unknown), backgroundColor: '#94a3b8' },
+            { label: '오답', data: pct.map(p => p.wrong), backgroundColor: '#f87171' },
+          ],
         },
-      },
-    },
-  });
-})();
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
+          },
+          scales: {
+            x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.06)' } },
+            y: { stacked: true, grid: { display: false } },
+          },
+        },
+      });
+    }
 
-/* ── 시험 결과 데이터 (OT / 최종 분리) ── */
-const examData = Object.freeze({
-  ot: {
-    score: 62,
-    subjects: [
-      { name: 'Python 기초',  correct: 5, timeout: 3, unknown: 2, wrong: 2 },
-      { name: '자료구조',      correct: 4, timeout: 3, unknown: 3, wrong: 3 },
-      { name: '데이터베이스',  correct: 5, timeout: 2, unknown: 2, wrong: 3 },
-      { name: '웹 프레임워크', correct: 6, timeout: 2, unknown: 1, wrong: 3 },
-      { name: '알고리즘',      correct: 3, timeout: 4, unknown: 3, wrong: 2 },
-    ],
-  },
-  final: {
-    score: 88,
-    subjects: [
-      { name: 'Python 기초',  correct: 8, timeout: 2, unknown: 1, wrong: 1 },
-      { name: '자료구조',      correct: 6, timeout: 3, unknown: 2, wrong: 2 },
-      { name: '데이터베이스',  correct: 7, timeout: 1, unknown: 1, wrong: 3 },
-      { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
-      { name: '알고리즘',      correct: 5, timeout: 4, unknown: 2, wrong: 1 },
-    ],
-  },
-});
+    // OT 탭 바로 렌더링
+    buildBarChart('barChartOt', examData.ot.subjects);
 
-function buildBarChart(canvasId, subjects) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const toPercent = s => {
-    const total = s.correct + s.timeout + s.unknown + s.wrong;
-    if (total === 0) return { correct: 0, timeout: 0, unknown: 0, wrong: 0 };
-    return {
-      correct: +(s.correct / total * 100).toFixed(1),
-      timeout: +(s.timeout / total * 100).toFixed(1),
-      unknown: +(s.unknown / total * 100).toFixed(1),
-      wrong:   +(s.wrong   / total * 100).toFixed(1),
-    };
-  };
-  const pct = subjects.map(toPercent);
-  new Chart(canvas.getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: subjects.map(s => s.name),
-      datasets: [
-        { label: '정답',    data: pct.map(p => p.correct), backgroundColor: '#22c55e' },
-        { label: '시간초과', data: pct.map(p => p.timeout), backgroundColor: '#facc15' },
-        { label: '모르겠음', data: pct.map(p => p.unknown), backgroundColor: '#94a3b8' },
-        { label: '오답',    data: pct.map(p => p.wrong),   backgroundColor: '#f87171' },
-      ],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
-      },
-      scales: {
-        x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.06)' } },
-        y: { stacked: true, grid: { display: false } },
-      },
-    },
-  });
-}
+    // 최종 탭: display:none 상태에선 크기가 0이므로 잠깐 보였다가 숨겨서 초기화
+    (function () {
+      const barFinal = document.getElementById('bar-final');
+      if (!barFinal) return;
+      barFinal.style.cssText = 'display:block;visibility:hidden;';
+      buildBarChart('barChartFinal', examData.final.subjects);
+      barFinal.style.cssText = '';
+    })();
 
-// OT 탭은 초기에 바로 렌더링
-buildBarChart('barChartOt', examData.ot.subjects);
+    function switchExamTab(tab, card) {
+      document.querySelectorAll('.exam-score-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.exam-bar').forEach(b => b.classList.remove('active'));
+      card.classList.add('active');
+      const bar = document.getElementById('bar-' + tab);
+      if (bar) bar.classList.add('active');
+    }
 
-// 최종 탭은 첫 클릭 시 lazy 초기화
-let finalChartBuilt = false;
+    /* ── 데일리 스크럼 데이터 ── */
+    const scrumData = [
+      { date: '03/04', problem: '개발 환경 세팅 중 Python 버전 충돌', solution: 'pyenv로 버전 분리 관리', result: '팀 공통 환경 통일 완료' },
+      { date: '03/05', problem: 'Git 커밋 컨벤션 미숙', solution: 'Conventional Commits 문서 학습 후 적용', result: '팀 리뷰 통과율 향상' },
+      { date: '03/06', problem: 'HTML/CSS 레이아웃 깨짐', solution: 'Flexbox 개념 재학습 후 수정', result: '반응형 레이아웃 완성' },
+      { date: '03/07', problem: 'JS 비동기 처리 이해 부족', solution: 'Promise / async-await 예제 실습', result: 'API 연동 로직 정상 동작' },
+      { date: '03/10', problem: 'REST API 설계 원칙 혼동', solution: '팀원과 RESTful 설계 리뷰', result: 'API 명세서 초안 작성 완료' },
+      { date: '03/11', problem: 'Django 모델 마이그레이션 충돌', solution: 'makemigrations --merge 로 해결', result: 'DB 스키마 정상화' },
+      { date: '03/12', problem: 'SQL JOIN 쿼리 성능 저하', solution: 'EXPLAIN 분석 후 인덱스 추가', result: '쿼리 응답 속도 60% 개선' },
+      { date: '03/13', problem: 'JWT 토큰 구조 이해 부족', solution: 'jwt.io 디버거로 페이로드 분석', result: '인증 흐름 정확히 이해' },
+      { date: '03/14', problem: 'CORS 오류로 API 호출 실패', solution: 'Django CORS 헤더 설정 추가', result: '프론트-백 연동 성공' },
+      { date: '03/17', problem: 'Git 브랜치 전략 이해 부족', solution: '팀원과 페어 프로그래밍으로 플로우 정리', result: 'feature 브랜치 독립 운영 성공' },
+      { date: '03/18', problem: 'Django ORM N+1 문제 발생', solution: 'select_related / prefetch_related 적용', result: 'DB 호출 횟수 12→2회로 감소' },
+      { date: '03/19', problem: 'REST API 인증 토큰 만료 처리 누락', solution: '미들웨어에 토큰 갱신 로직 추가', result: '세션 유지 안정화 완료' },
+      { date: '03/20', problem: '유닛 테스트 커버리지 20% 미달', solution: 'pytest 픽스처 추가로 케이스 확장', result: '커버리지 78% 달성' },
+      { date: '03/21', problem: 'Docker 컨테이너 간 네트워크 연결 실패', solution: 'docker-compose network 설정 수정', result: '서비스 간 통신 정상화' },
+      { date: '03/24', problem: '배포 시 환경변수 누락으로 서비스 오류', solution: '.env.example 파일 관리 체계 수립', result: '팀 전체 배포 가이드 문서화' },
+      { date: '03/25', problem: 'CSS 미디어 쿼리 범위 충돌', solution: 'mobile-first 방식으로 재작성', result: '태블릿/모바일 레이아웃 정상 동작' },
+      { date: '03/26', problem: 'React 상태 관리 복잡도 증가', solution: 'Context API로 전역 상태 분리', result: '컴포넌트 의존성 단순화' },
+      { date: '03/27', problem: '프론트엔드 차트 렌더링 성능 저하', solution: 'Chart.js 데이터 lazy loading 적용', result: '초기 로드 1.8s → 0.6s 개선' },
+      { date: '03/28', problem: '코드 리뷰 피드백 반영 지연', solution: 'PR 템플릿과 체크리스트 도입', result: '리뷰 사이클 2일 → 반일로 단축' },
+      { date: '03/31', problem: 'Pagination 로직 엣지케이스 누락', solution: '빈 배열/마지막 페이지 방어 코드 추가', result: '페이지네이션 안정성 확보' },
+      { date: '04/01', problem: 'AWS S3 퍼블릭 접근 차단 오류', solution: '버킷 정책과 ACL 설정 재검토', result: '정적 파일 서빙 정상화' },
+      { date: '04/02', problem: 'CI 파이프라인 빌드 실패', solution: 'requirements.txt 버전 고정으로 해결', result: 'GitHub Actions 배포 자동화 완료' },
+      { date: '04/03', problem: 'Celery 태스크 큐 적체 발생', solution: '워커 수 증가 및 태스크 분산 처리', result: '평균 처리 지연 90% 감소' },
+      { date: '04/04', problem: '데이터베이스 백업 미설정', solution: 'pg_dump 크론 스크립트 작성', result: '일 1회 자동 백업 체계 구축' },
+      { date: '04/07', problem: 'WebSocket 연결 끊김 현상', solution: 'heartbeat ping 로직 추가', result: '실시간 알림 안정적 유지' },
+      { date: '04/08', problem: 'SQL 트랜잭션 롤백 누락', solution: 'atomic() 블록으로 전체 감싸기', result: '데이터 정합성 보장' },
+      { date: '04/09', problem: '로그인 세션 중복 발급 문제', solution: '기존 세션 만료 처리 로직 추가', result: '보안 취약점 해소' },
+      { date: '04/10', problem: '페이지 로드 시 깜빡임 현상', solution: 'CSS skeleton loading 적용', result: 'UX 체감 속도 개선' },
+      { date: '04/11', problem: 'API 응답 스키마 불일치', solution: 'serializer 유효성 검증 강화', result: '프론트 렌더링 오류 제거' },
+      { date: '04/14', problem: '검색 기능 한글 처리 오류', solution: 'icontains → 형태소 분석기 교체', result: '한글 검색 정확도 향상' },
+      { date: '04/15', problem: '이미지 업로드 용량 제한 미적용', solution: 'multer 미들웨어에 size limit 설정', result: '서버 저장소 낭비 방지' },
+      { date: '04/16', problem: 'Git rebase 충돌 해결 미숙', solution: 'git rerere 활성화 후 반복 연습', result: '충돌 해결 시간 70% 단축' },
+      { date: '04/17', problem: '모니터링 알림 임계값 미설정', solution: 'Prometheus alertmanager 규칙 추가', result: '장애 사전 감지 체계 구축' },
+      { date: '04/18', problem: '코드 중복으로 유지보수 어려움', solution: '공통 유틸 함수 모듈로 분리', result: '코드베이스 300줄 감소' },
+      { date: '04/21', problem: 'PDF 출력 시 차트 짤림', solution: '@media print 스타일 별도 정의', result: 'PDF 레이아웃 완성' },
+      { date: '04/22', problem: '다국어 지원 누락', solution: 'i18n 라이브러리 도입 및 키 정의', result: '한/영 전환 기능 완성' },
+      { date: '04/23', problem: 'OAuth 리다이렉트 URI 불일치', solution: '환경별 URI 설정 분리', result: '소셜 로그인 안정화' },
+      { date: '04/24', problem: '무한 스크롤 중복 데이터 로드', solution: 'IntersectionObserver + 요청 디바운싱', result: '스크롤 성능 정상화' },
+      { date: '04/25', problem: 'XSS 취약점 발견', solution: 'DOMPurify 적용 및 입력 이스케이프 처리', result: '보안 감사 통과' },
+      { date: '04/28', problem: '최종 발표 데모 중 서버 다운', solution: '스테이징 환경 부하 테스트 선행', result: '실제 발표는 무중단 진행 완료' },
+    ];
 
-function switchExamTab(tab, card) {
-  document.querySelectorAll('.exam-score-card').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.exam-bar').forEach(b => b.classList.remove('active'));
-  card.classList.add('active');
-  const bar = document.getElementById('bar-' + tab);
-  if (!bar) return;
-  bar.classList.add('active');
-  if (tab === 'final' && !finalChartBuilt) {
-    buildBarChart('barChartFinal', examData.final.subjects);
-    finalChartBuilt = true;
-  }
-}
+    /* ── 스크럼 페이지네이션 ── */
+    const SCRUM_PAGE_SIZE = 10;
+    let currentPage = 1;
 
-/* ── 데일리 스크럼 데이터 ── */
-const scrumData = [
-  { date: '03/25', problem: 'Git 브랜치 전략 이해 부족', solution: '팀원과 페어 프로그래밍으로 플로우 정리', result: 'feature 브랜치 독립 운영 성공' },
-  { date: '03/26', problem: 'SQL JOIN 쿼리 성능 저하', solution: 'EXPLAIN 분석 후 인덱스 추가', result: '쿼리 응답 속도 60% 개선' },
-  { date: '03/27', problem: 'Django ORM N+1 문제 발생', solution: 'select_related / prefetch_related 적용', result: 'DB 호출 횟수 12→2회로 감소' },
-  { date: '03/28', problem: 'REST API 인증 토큰 만료 처리 누락', solution: '미들웨어에 토큰 갱신 로직 추가', result: '세션 유지 안정화 완료' },
-  { date: '03/31', problem: '배포 시 환경변수 누락으로 서비스 오류', solution: '.env.example 파일 관리 체계 수립', result: '팀 전체 배포 가이드 문서화' },
-  { date: '04/01', problem: '프론트엔드 차트 렌더링 성능 저하', solution: 'Chart.js 데이터 lazy loading 적용', result: '초기 로드 1.8s → 0.6s 개선' },
-  { date: '04/02', problem: '코드 리뷰 피드백 반영 지연', solution: 'PR 템플릿과 체크리스트 도입', result: '리뷰 사이클 2일 → 반일로 단축' },
-];
-
-/* ── 스크럼 페이지네이션 ── */
-const SCRUM_PAGE_SIZE = 10;
-let currentPage = 1;
-
-function scrumRowHtml(row) {
-  return `<tr>
+    function scrumRowHtml(row) {
+      return `<tr>
     <td><span class="date-badge">${escapeHtml(row.date)}</span></td>
     <td>${escapeHtml(row.problem)}</td>
     <td>${escapeHtml(row.solution)}</td>
     <td>${escapeHtml(row.result)}</td>
   </tr>`;
-}
+    }
 
-function renderScrumRows(rows) {
-  const tbody = document.getElementById('scrumBody');
-  if (!tbody) return;
-  tbody.innerHTML = rows.map(scrumRowHtml).join('');
-}
+    function renderScrumRows(rows) {
+      const tbody = document.getElementById('scrumBody');
+      if (!tbody) return;
+      tbody.innerHTML = rows.map(scrumRowHtml).join('');
+    }
 
-function renderScrumPage(page) {
-  const totalPages = Math.max(1, Math.ceil(scrumData.length / SCRUM_PAGE_SIZE));
-  currentPage = Math.max(1, Math.min(page, totalPages));
-  const start = (currentPage - 1) * SCRUM_PAGE_SIZE;
-  renderScrumRows(scrumData.slice(start, start + SCRUM_PAGE_SIZE));
+    function renderScrumPage(page) {
+      const totalPages = Math.max(1, Math.ceil(scrumData.length / SCRUM_PAGE_SIZE));
+      currentPage = Math.max(1, Math.min(page, totalPages));
+      const start = (currentPage - 1) * SCRUM_PAGE_SIZE;
+      renderScrumRows(scrumData.slice(start, start + SCRUM_PAGE_SIZE));
 
-  const pageInfo = document.getElementById('scrumPageInfo');
-  const prevBtn  = document.getElementById('scrumPrev');
-  const nextBtn  = document.getElementById('scrumNext');
-  const pagination = document.getElementById('scrumPagination');
+      const pageInfo = document.getElementById('scrumPageInfo');
+      const prevBtn = document.getElementById('scrumPrev');
+      const nextBtn = document.getElementById('scrumNext');
+      const pagination = document.getElementById('scrumPagination');
 
-  if (pageInfo) pageInfo.textContent = `${currentPage} / ${totalPages}`;
-  if (prevBtn)  prevBtn.disabled  = currentPage === 1;
-  if (nextBtn)  nextBtn.disabled  = currentPage === totalPages;
-  // 전체가 한 페이지면 페이지네이션 숨김
-  if (pagination) pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
-}
+      if (pageInfo) pageInfo.textContent = `${currentPage} / ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+      // 전체가 한 페이지면 페이지네이션 숨김
+      if (pagination) pagination.style.display = totalPages <= 1 ? 'none' : 'flex';
+    }
 
-function moveScrumPage(delta) { renderScrumPage(currentPage + delta); }
+    function moveScrumPage(delta) { renderScrumPage(currentPage + delta); }
 
-renderScrumPage(1);
+    renderScrumPage(1);
 
-/* ── 포트폴리오 — 스크럼 데이터 기반 자동 생성 ── */
-(function buildPortfolio() {
-  const card = document.getElementById('portfolioCard');
-  if (!card) return;
+    /* ── 포트폴리오 — 스크럼 데이터 기반 자동 생성 ── */
+    (function buildPortfolio() {
+      const card = document.getElementById('portfolioCard');
+      if (!card) return;
 
-  const keywordMap = {
-    'Git': 'Git', 'SQL': 'SQL', 'Django': 'Django', 'ORM': 'Django ORM',
-    'REST': 'REST API', 'API': 'REST API', '배포': 'Docker',
-    'Chart': 'Chart.js', 'PR': 'GitHub Actions',
-  };
-  const techSet = new Set();
-  scrumData.forEach(({ problem, solution }) => {
-    Object.entries(keywordMap).forEach(([kw, tech]) => {
-      if (problem.includes(kw) || solution.includes(kw)) techSet.add(tech);
-    });
-  });
-  techSet.add('Python');
-  const techs = [...techSet].slice(0, 6);
+      const keywordMap = {
+        'Git': 'Git', 'SQL': 'SQL', 'Django': 'Django', 'ORM': 'Django ORM',
+        'REST': 'REST API', 'API': 'REST API', '배포': 'Docker',
+        'Chart': 'Chart.js', 'PR': 'GitHub Actions',
+      };
+      const techSet = new Set();
+      scrumData.forEach(({ problem, solution }) => {
+        Object.entries(keywordMap).forEach(([kw, tech]) => {
+          if (problem.includes(kw) || solution.includes(kw)) techSet.add(tech);
+        });
+      });
+      techSet.add('Python');
+      const techs = [...techSet].slice(0, 6);
 
-  const achievements = scrumData
-    .map(s => s.result)
-    .filter(r => /\d+[%회초→]/.test(r));
+      const achievements = scrumData
+        .map(s => s.result)
+        .filter(r => /\d+[%회초→]/.test(r));
 
-  card.innerHTML = `
+      card.innerHTML = `
     <h3>풀스택 웹 서비스 개발 프로젝트</h3>
     <p class="description">
-      본 과정에서 습득한 백엔드(Django REST Framework)와 프론트엔드(Vanilla JS + Chart.js) 기술을
-      활용하여 팀 협업 기반의 데이터 시각화 웹 서비스를 구축했습니다.
-      Git 워크플로우, DB 최적화, API 설계, 배포 자동화까지 풀스택 개발 사이클 전반을 경험했습니다.
+      YOLO를 1차 필터로 사용하여 유효 프레임만 추출하고, 이미지 리사이징 및 Top-2 핵심 장면 선별 로직을 적용해 GPT 분석 효율과 비용 문제를 동시에 해결함.
+      서버에서 수신한 UTC(협정 세계시) 데이터를 프론트엔드 가공 단계에서 사용자 로컬 시간(KST)으로 변환 후 날짜를 분류하도록 로직 수정함.
+      서버에서 클라이언트로의 단방향 통신에 최적화된 SSE를 도입하고, 영상 스트리밍(WebRTC)과 알림 채널(SSE)을 분리함.
+    </p>
+    <h3>프로젝트 개요</h3>
+    <p class="description">
+      AEGIS - VLM 기반 실시간 이상행동 감지 및 자율 대응형 AI 관제 에이전트
+      VLM이 실시간으로 CCTV 영상을 분석해 이상행동을 감지하면, 자동 요약 리포트를 작성하고 Agent가 스스로 판단하여 대응하는 AI CCTV 관제 시스템.
+    </p>
+    <h3>주요 기능</h3>
+    <p class="description">
+      - 실시간 알림 및 통합 대시보드 <br>
+      - 위험도에 따라 상황 감지 알림 전송 <br>
+      - AI 자동 리포트 작성 <br>
+      - 위험도 판단하고, 보고서 자동 작성, AI가 영상 속 상황을 자연어로 설명 <br>
+      - 사건 이력 관리 <br>
+      - 사건 발생 시점의 영상 자동 녹화, 사건 발생 이력 통계 제공 <br>
     </p>
     <div class="skills-list">
       ${techs.map(t => `<span class="skill-tag">${escapeHtml(t)}</span>`).join('')}
@@ -565,22 +882,20 @@ renderScrumPage(1);
       ${achievements.map(a => `<div class="achievement-item">${escapeHtml(a)}</div>`).join('')}
     </div>
   `;
-})();
+    })();
 
-/* ── PDF 출력 시 사전 처리 ── */
-window.onbeforeprint = function() {
-  // 최종 탭 차트가 아직 초기화 안 됐으면 사전 렌더링
-  if (!finalChartBuilt) {
-    buildBarChart('barChartFinal', examData.final.subjects);
-    finalChartBuilt = true;
-  }
-  // 스크럼 전체 행 렌더링 (페이지네이션 무시)
-  renderScrumRows(scrumData);
-};
-window.onafterprint = function() {
-  // 인쇄 완료 후 현재 페이지로 복원
-  renderScrumPage(currentPage);
-};
-</script>
+    /* ── PDF 출력 시 사전 처리 ── */
+    window.onbeforeprint = function () {
+      // 스크럼 전체 행 렌더링 (페이지네이션 무시)
+      renderScrumRows(scrumData);
+      // 인라인 스타일이 @media print보다 우선순위가 높으므로 직접 숨김
+      const pagination = document.getElementById('scrumPagination');
+      if (pagination) pagination.style.display = 'none';
+    };
+    window.onafterprint = function () {
+      renderScrumPage(currentPage);
+    };
+  </script>
 </body>
+
 </html>
