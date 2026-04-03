@@ -119,13 +119,13 @@
     .exam-score-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
     .exam-score-card {
       background: #fff;
-      border-radius: 16px;
-      padding: 24px 28px;
+      border-radius: 12px;
+      padding: 12px 20px;
       box-shadow: 0 2px 12px rgba(0,0,0,.07);
       text-align: center;
       cursor: pointer;
@@ -133,9 +133,9 @@
       transition: border-color .15s, box-shadow .15s;
     }
     .exam-score-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
-    .exam-score-card .label { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
-    .exam-score-card .score { font-size: 3rem; font-weight: 800; line-height: 1; }
-    .exam-score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
+    .exam-score-card .label { font-size: 0.8rem; color: #666; margin-bottom: 4px; }
+    .exam-score-card .score { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .exam-score-card .total { font-size: 0.8rem; color: #999; margin-top: 2px; }
     .card-ot   .score { color: #0f3460; }
     .card-ot.active   { border-color: #0f3460; }
     .card-final .score { color: #e94560; }
@@ -608,17 +608,13 @@ renderScrumPage(1);
 
 /* ── PDF 출력 시 사전 처리 ── */
 window.onbeforeprint = function() {
-  // 최종 탭 bar-final을 잠시 보이게 해서 차트 크기를 올바르게 계산하게 함
+  // 최종 탭을 보이게 한 뒤 차트를 파괴-재빌드 (display:none 상태 빌드 시 크기 0 문제 해결)
   const barFinal = document.getElementById('bar-final');
   if (barFinal) barFinal.style.display = 'block';
-  if (!finalChartBuilt) {
-    buildBarChart('barChartFinal', examData.final.subjects);
-    finalChartBuilt = true;
-  } else {
-    // 이미 빌드됐어도 크기 재계산
-    const chart = Chart.getChart('barChartFinal');
-    if (chart) chart.resize();
-  }
+  const existingChart = Chart.getChart('barChartFinal');
+  if (existingChart) existingChart.destroy();
+  buildBarChart('barChartFinal', examData.final.subjects);
+  finalChartBuilt = true;
   // 스크럼 전체 행 렌더링 (페이지네이션 무시)
   renderScrumRows(scrumData);
   // 인라인 스타일이 @media print보다 우선순위가 높으므로 직접 숨김
