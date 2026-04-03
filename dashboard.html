@@ -322,12 +322,24 @@
 
     .bar-stack {
       display: flex;
-      height: 30px;
+      height: 34px;
       border-radius: 4px;
       overflow: hidden;
       background: #f0f2f5;
       position: relative;
       cursor: pointer;
+    }
+
+    .col-bar-unmeasured {
+      display: flex;
+      align-items: center;
+    }
+
+    .unmeasured-label {
+      font-size: 0.75rem;
+      color: #b0b8c8;
+      font-style: italic;
+      letter-spacing: 0.02em;
     }
 
     .bar-seg:hover {
@@ -695,21 +707,19 @@
       ot: {
         score: 62,
         subjects: [
-          { name: 'Python 기초', correct: 5, timeout: 3, unknown: 2, wrong: 2 },
-          { name: '자료구조', correct: 4, timeout: 3, unknown: 3, wrong: 3 },
-          { name: '데이터베이스', correct: 5, timeout: 2, unknown: 2, wrong: 3 },
-          { name: '웹 프레임워크', correct: 6, timeout: 2, unknown: 1, wrong: 3 },
-          { name: '알고리즘', correct: 3, timeout: 4, unknown: 3, wrong: 2 },
+          { name: 'AI', correct: 5, timeout: 3, unknown: 2, wrong: 2 },
+          { name: 'CS', correct: 4, timeout: 3, unknown: 3, wrong: 3 },
+          { name: 'Collab', correct: 5, timeout: 2, unknown: 2, wrong: 3 },
         ],
       },
       final: {
         score: 88,
         subjects: [
-          { name: 'Python 기초', correct: 8, timeout: 2, unknown: 1, wrong: 1 },
-          { name: '자료구조', correct: 6, timeout: 3, unknown: 2, wrong: 2 },
-          { name: '데이터베이스', correct: 7, timeout: 1, unknown: 1, wrong: 3 },
-          { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
-          { name: '알고리즘', correct: 5, timeout: 4, unknown: 2, wrong: 1 },
+          { name: 'AI', correct: 8, timeout: 2, unknown: 1, wrong: 1 },
+          { name: 'CS', correct: 6, timeout: 3, unknown: 2, wrong: 2 },
+          { name: 'Collab', correct: 7, timeout: 1, unknown: 1, wrong: 3 },
+          { name: 'Devops', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
+          { name: 'Project', correct: 5, timeout: 4, unknown: 2, wrong: 1 },
         ],
       },
     });
@@ -734,14 +744,19 @@
         ).join('')}</div>`;
       };
 
-      examData.ot.subjects.forEach((s, i) => {
-        const otPct = toPercent(s);
-        const finalPct = toPercent(examData.final.subjects[i]);
+      const otByName = {};
+      examData.ot.subjects.forEach(s => { otByName[s.name] = s; });
+
+      examData.final.subjects.forEach(s => {
+        const otSubject = otByName[s.name];
+        const finalPct = toPercent(s);
+        const otCell = otSubject
+          ? `<td class="col-type ot">사전</td><td class="col-bar">${makeBar(toPercent(otSubject), true)}</td>`
+          : `<td class="col-type ot">사전</td><td class="col-bar col-bar-unmeasured"><span class="unmeasured-label">미측정</span></td>`;
         tbody.insertAdjacentHTML('beforeend', `
           <tr class="row-ot">
             <td class="col-subject" rowspan="2">${escapeHtml(s.name)}</td>
-            <td class="col-type ot">사전</td>
-            <td class="col-bar">${makeBar(otPct, true)}</td>
+            ${otCell}
           </tr>
           <tr>
             <td class="col-type final">최종</td>
