@@ -112,7 +112,9 @@
       /* 범례 색상 점 + 시험 배경색 출력 */
       .legend-dot,
       .bar-wrap,
-      .exam-bar-title {
+      .exam-bar-title,
+      .bar-stack,
+      .bar-seg {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -125,9 +127,10 @@
         width: 100% !important;
       }
 
-      /* 레이더 차트: 비율 유지하면서 크기 제한 */
+      /* 레이더 차트: 화면과 동일한 크기로 인쇄 (재렌더링 시 쏠림 방지) */
       .radar-chart-container {
-        max-width: 360px !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
       }
 
       /* 섹션 간 여백 */
@@ -653,9 +656,9 @@
 
     /* ── 레이더 데이터 ── */
     const radarData = Object.freeze({
-      labels: ['기획·도메인', 'CS 기초', '개발·구현', 'AI 활용', '품질·보안', '협업·성장'],
-      before: [2, 3, 2, 1, 2, 4],
-      after: [4, 5, 4, 3, 3, 5],
+      labels: ['기획·도메인', '협업·성장', '품질·보안', 'AI 활용', '개발·구현', 'CS 기초'],
+      before: [2, 4, 2, 1, 2, 3],
+      after: [4, 5, 3, 3, 4, 5],
     });
 
     (function buildRadar() {
@@ -710,6 +713,7 @@
           { name: 'AI', correct: 5, timeout: 3, unknown: 2, wrong: 2 },
           { name: 'CS', correct: 4, timeout: 3, unknown: 3, wrong: 3 },
           { name: 'Collab', correct: 5, timeout: 2, unknown: 2, wrong: 3 },
+          { name: 'Devops', correct: 5, timeout: 2, unknown: 2, wrong: 3 },
         ],
       },
       final: {
