@@ -1,6 +1,6 @@
 #!/bin/bash
 # validate-commit.sh
-# PreToolUse Hook: Conventional Commits 형식 검증
+# PreToolUse Hook: Conventional Commits 형식 검증 + 보호 브랜치 커밋 차단
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
@@ -9,6 +9,26 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 if ! echo "$COMMAND" | grep -qE '^\s*git commit'; then
   exit 0
 fi
+
+# 보호 브랜치에서 직접 커밋 차단
+PROTECTED_BRANCHES="main master dev develop release staging"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+for branch in $PROTECTED_BRANCHES; do
+  if [ "$CURRENT_BRANCH" = "$branch" ] || echo "$CURRENT_BRANCH" | grep -qE "^release/"; then
+    cat <<EOF >&2
+🚫 [커밋 차단] 보호 브랜치 '$CURRENT_BRANCH'에 직접 커밋할 수 없습니다.
+
+작업용 브랜치를 생성 후 커밋하세요:
+
+  git checkout -b feat/기능명
+  git checkout -b fix/버그명
+
+이후 PR을 통해 병합하세요.
+EOF
+    exit 2
+  fi
+done
 
 # --amend, --no-edit, -C 등 메시지 없는 커밋은 통과
 if echo "$COMMAND" | grep -qE -- '--no-edit|-C\s'; then
