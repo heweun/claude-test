@@ -2,7 +2,6 @@
 name: create-pr
 description: 현재 브랜치의 커밋 히스토리와 diff를 분석하여 PR 템플릿을 자동 생성하고, 코드 리뷰 에이전트를 실행한 뒤 gh pr create로 PR을 생성합니다.
 argument-hint: [base-branch]
-disable-model-invocation: true
 allowed-tools: Bash(git *, gh *), Read, Glob, Grep, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__javascript_tool
 ---
 
@@ -90,7 +89,8 @@ base 브랜치를 결정합니다 (기본: `main`, 인자로 지정 가능):
 1. `mcp__claude-in-chrome__tabs_context_mcp`로 현재 탭 확인
 2. `mcp__claude-in-chrome__tabs_create_mcp`로 새 탭 생성
 3. 변경된 HTML 파일 경로를 `file://` URL로 변환하여 `mcp__claude-in-chrome__navigate`로 열기
-   - 예: `file:///C:/Users/804/Desktop/claude-test/dashboard.html`
+   - 프로젝트 루트: `git rev-parse --show-toplevel`로 확인
+   - 예: `file://$(git rev-parse --show-toplevel)/dashboard.html`
 4. `mcp__claude-in-chrome__computer`로 스크린샷 캡처
 5. PR 본문 Screenshots 섹션에 아래 형식으로 삽입:
 
