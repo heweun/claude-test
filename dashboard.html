@@ -55,6 +55,12 @@
       .exam-bar { display: block !important; }
       .exam-bar + .exam-bar { border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 24px; }
       .exam-score-card { border-color: transparent !important; cursor: default; }
+      /* 범례 색상 점 출력 */
+      .legend-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      /* 범례와 차트가 페이지 경계에서 분리되지 않도록 */
+      .bar-wrap { break-inside: avoid; }
+      /* 차트 캔버스 높이 보장 */
+      canvas { max-height: 300px; }
     }
 
     /* ── 공통 섹션 ── */
@@ -602,10 +608,16 @@ renderScrumPage(1);
 
 /* ── PDF 출력 시 사전 처리 ── */
 window.onbeforeprint = function() {
-  // 최종 탭 차트가 아직 초기화 안 됐으면 사전 렌더링
+  // 최종 탭 bar-final을 잠시 보이게 해서 차트 크기를 올바르게 계산하게 함
+  const barFinal = document.getElementById('bar-final');
+  if (barFinal) barFinal.style.display = 'block';
   if (!finalChartBuilt) {
     buildBarChart('barChartFinal', examData.final.subjects);
     finalChartBuilt = true;
+  } else {
+    // 이미 빌드됐어도 크기 재계산
+    const chart = Chart.getChart('barChartFinal');
+    if (chart) chart.resize();
   }
   // 스크럼 전체 행 렌더링 (페이지네이션 무시)
   renderScrumRows(scrumData);
@@ -614,6 +626,9 @@ window.onbeforeprint = function() {
   if (pagination) pagination.style.display = 'none';
 };
 window.onafterprint = function() {
+  // bar-final 인라인 스타일 제거 (CSS 클래스 방식으로 복원)
+  const barFinal = document.getElementById('bar-final');
+  if (barFinal) barFinal.style.display = '';
   // 인쇄 완료 후 현재 페이지로 복원
   renderScrumPage(currentPage);
 };
