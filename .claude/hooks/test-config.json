@@ -5,8 +5,9 @@
   "autoDetect": true,
   "detectionOrder": [
     { "file": "package.json", "command": "npm test" },
-    { "file": "pyproject.toml", "command": "pytest" },
-    { "file": "setup.py", "command": "pytest" },
+    { "file": "uv.lock", "command": "auto:python" },
+    { "file": "pyproject.toml", "command": "auto:python" },
+    { "file": "setup.py", "command": "auto:python" },
     { "file": "Makefile", "command": "make test" },
     { "file": "build.gradle", "command": "./gradlew test" },
     { "file": "pom.xml", "command": "mvn test" },
