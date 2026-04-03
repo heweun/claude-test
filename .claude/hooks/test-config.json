@@ -5,7 +5,7 @@
   "autoDetect": true,
   "detectionOrder": [
     { "file": "package.json", "command": "npm test" },
-    { "file": "uv.lock", "command": "uv run pytest" },
+    { "file": "uv.lock", "command": "auto:python" },
     { "file": "pyproject.toml", "command": "auto:python" },
     { "file": "setup.py", "command": "auto:python" },
     { "file": "Makefile", "command": "make test" },

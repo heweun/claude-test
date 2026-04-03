@@ -55,7 +55,9 @@ if [ -z "$TEST_CMD" ]; then
   exit 0
 fi
 
-# auto:python — uv 있으면 uv run pytest, 없으면 python -m pytest
+# auto:python — test-config.json의 내부 키워드
+# uv 있으면 uv run pytest, 없으면 python -m pytest로 fallback
+# (uv.lock / pyproject.toml / setup.py 감지 시 공통 사용)
 if [ "$TEST_CMD" = "auto:python" ]; then
   if command -v uv &>/dev/null; then
     TEST_CMD="uv run pytest"
