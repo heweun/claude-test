@@ -1,0 +1,16 @@
+{
+  "testCommand": null,
+  "timeout": 120,
+  "skipOnBranches": [],
+  "autoDetect": true,
+  "detectionOrder": [
+    { "file": "package.json", "command": "npm test" },
+    { "file": "pyproject.toml", "command": "pytest" },
+    { "file": "setup.py", "command": "pytest" },
+    { "file": "Makefile", "command": "make test" },
+    { "file": "build.gradle", "command": "./gradlew test" },
+    { "file": "pom.xml", "command": "mvn test" },
+    { "file": "Cargo.toml", "command": "cargo test" },
+    { "file": "go.mod", "command": "go test ./..." }
+  ]
+}
