@@ -74,8 +74,8 @@ git merge origin/$BASE_BRANCH --no-commit --no-ff
 
 ### 3단계: PR 상태 확인
 
-```
-!`gh pr view $PR_NUMBER --json title,state,isDraft`
+```bash
+gh pr view $PR_NUMBER --json title,state,isDraft
 ```
 
 - `state`가 `OPEN`인지 확인
