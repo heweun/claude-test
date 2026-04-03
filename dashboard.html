@@ -117,6 +117,36 @@
       flex-wrap: wrap;
     }
 
+    /* ── 데일리 스크럼 ── */
+    .scrum-table-wrap {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    .scrum-table { width: 100%; border-collapse: collapse; }
+    .scrum-table thead tr { background: #0f3460; color: #fff; }
+    .scrum-table th, .scrum-table td {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: top;
+    }
+    .scrum-table th { font-weight: 600; white-space: nowrap; }
+    .scrum-table tr:last-child td { border-bottom: none; }
+    .scrum-table tbody tr:hover { background: #f8f9ff; }
+    .date-badge {
+      display: inline-block;
+      background: #eef1f8;
+      color: #0f3460;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
     @media (max-width: 640px) {
       header { padding: 24px 20px; }
       .section { padding: 0 12px; }
@@ -178,6 +208,24 @@
       <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
     </div>
     <canvas id="barChart"></canvas>
+  </div>
+</div>
+
+<!-- ── 데일리 스크럼 ── -->
+<div class="section">
+  <div class="section-title">🗓 데일리 스크럼</div>
+  <div class="scrum-table-wrap">
+    <table class="scrum-table">
+      <thead>
+        <tr>
+          <th>날짜</th>
+          <th>문제</th>
+          <th>해결방안</th>
+          <th>결과</th>
+        </tr>
+      </thead>
+      <tbody id="scrumBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -284,6 +332,30 @@ const examData = {
       },
     },
   });
+})();
+
+/* ── 데일리 스크럼 데이터 ── */
+const scrumData = [
+  { date: '03/25', problem: 'Git 브랜치 전략 이해 부족', solution: '팀원과 페어 프로그래밍으로 플로우 정리', result: 'feature 브랜치 독립 운영 성공' },
+  { date: '03/26', problem: 'SQL JOIN 쿼리 성능 저하', solution: 'EXPLAIN 분석 후 인덱스 추가', result: '쿼리 응답 속도 60% 개선' },
+  { date: '03/27', problem: 'Django ORM N+1 문제 발생', solution: 'select_related / prefetch_related 적용', result: 'DB 호출 횟수 12→2회로 감소' },
+  { date: '03/28', problem: 'REST API 인증 토큰 만료 처리 누락', solution: '미들웨어에 토큰 갱신 로직 추가', result: '세션 유지 안정화 완료' },
+  { date: '03/31', problem: '배포 시 환경변수 누락으로 서비스 오류', solution: '.env.example 파일 관리 체계 수립', result: '팀 전체 배포 가이드 문서화' },
+  { date: '04/01', problem: '프론트엔드 차트 렌더링 성능 저하', solution: 'Chart.js 데이터 lazy loading 적용', result: '초기 로드 1.8s → 0.6s 개선' },
+  { date: '04/02', problem: '코드 리뷰 피드백 반영 지연', solution: 'PR 템플릿과 체크리스트 도입', result: '리뷰 사이클 2일 → 반일로 단축' },
+];
+
+(function buildScrum() {
+  const tbody = document.getElementById('scrumBody');
+  if (!tbody) return;
+  tbody.innerHTML = scrumData.map(row =>
+    `<tr>
+      <td><span class="date-badge">${row.date}</span></td>
+      <td>${row.problem}</td>
+      <td>${row.solution}</td>
+      <td>${row.result}</td>
+    </tr>`
+  ).join('');
 })();
 </script>
 </body>
