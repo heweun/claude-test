@@ -147,6 +147,29 @@
       white-space: nowrap;
     }
 
+    /* ── 포트폴리오 ── */
+    .portfolio-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    .portfolio-card h3 { font-size: 1.2rem; font-weight: 700; color: #0f3460; margin-bottom: 12px; }
+    .portfolio-card .description { font-size: 0.9rem; color: #555; line-height: 1.7; margin-bottom: 20px; }
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .skill-tag {
+      background: #eef1f8; color: #0f3460;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .achievements { border-top: 1px solid #f0f2f5; padding-top: 20px; }
+    .achievements h4 { font-size: 0.9rem; font-weight: 700; color: #e94560; margin-bottom: 12px; }
+    .achievement-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 8px; font-size: 0.875rem; color: #444;
+    }
+    .achievement-item::before { content: '▸'; color: #e94560; flex-shrink: 0; margin-top: 1px; }
+
     @media (max-width: 640px) {
       header { padding: 24px 20px; }
       .section { padding: 0 12px; }
@@ -227,6 +250,12 @@
       <tbody id="scrumBody"></tbody>
     </table>
   </div>
+</div>
+
+<!-- ── 포트폴리오 ── -->
+<div class="section">
+  <div class="section-title">💼 포트폴리오</div>
+  <div class="portfolio-card" id="portfolioCard"></div>
 </div>
 
 <div style="height: 48px;"></div>
@@ -356,6 +385,48 @@ const scrumData = [
       <td>${row.result}</td>
     </tr>`
   ).join('');
+})();
+
+/* ── 포트폴리오 — 스크럼 데이터 기반 자동 생성 ── */
+(function buildPortfolio() {
+  const card = document.getElementById('portfolioCard');
+  if (!card) return;
+
+  const keywordMap = {
+    'Git': 'Git', 'SQL': 'SQL', 'Django': 'Django', 'ORM': 'Django ORM',
+    'REST': 'REST API', 'API': 'REST API', '배포': 'Docker',
+    'Chart': 'Chart.js', 'PR': 'GitHub Actions',
+  };
+  const techSet = new Set();
+  scrumData.forEach(({ problem, solution }) => {
+    Object.entries(keywordMap).forEach(([kw, tech]) => {
+      if (problem.includes(kw) || solution.includes(kw)) techSet.add(tech);
+    });
+  });
+  const techs = [...techSet, 'Python'].slice(0, 6);
+
+  const achievements = scrumData
+    .map(s => s.result)
+    .filter(r => /\d+[%회초s→]/.test(r));
+
+  const escapeHtml = str =>
+    str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  card.innerHTML = `
+    <h3>풀스택 웹 서비스 개발 프로젝트</h3>
+    <p class="description">
+      본 과정에서 습득한 백엔드(Django REST Framework)와 프론트엔드(Vanilla JS + Chart.js) 기술을
+      활용하여 팀 협업 기반의 데이터 시각화 웹 서비스를 구축했습니다.
+      Git 워크플로우, DB 최적화, API 설계, 배포 자동화까지 풀스택 개발 사이클 전반을 경험했습니다.
+    </p>
+    <div class="skills-list">
+      ${techs.map(t => `<span class="skill-tag">${escapeHtml(t)}</span>`).join('')}
+    </div>
+    <div class="achievements">
+      <h4>주요 성과 (스크럼 기반)</h4>
+      ${achievements.map(a => `<div class="achievement-item">${escapeHtml(a)}</div>`).join('')}
+    </div>
+  `;
 })();
 </script>
 </body>
