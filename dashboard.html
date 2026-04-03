@@ -260,12 +260,16 @@
 
 <div style="height: 48px;"></div>
 <script>
+/* ── 공통 유틸 ── */
+const escapeHtml = str =>
+  str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 /* ── 레이더 데이터 ── */
-const radarData = {
+const radarData = Object.freeze({
   labels: ['알고리즘', '자료구조', '데이터베이스', '네트워크', '운영체제', '협업능력'],
   before: [2, 3, 2, 1, 2, 4],
   after:  [4, 5, 4, 3, 3, 5],
-};
+});
 
 (function buildRadar() {
   const canvas = document.getElementById('radarChart');
@@ -312,7 +316,7 @@ const radarData = {
 })();
 
 /* ── 시험 결과 데이터 ── */
-const examData = {
+const examData = Object.freeze({
   ot: 62,
   final: 88,
   subjects: [
@@ -322,7 +326,7 @@ const examData = {
     { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
     { name: '알고리즘',      correct: 5, timeout: 4, unknown: 2, wrong: 1 },
   ],
-};
+});
 
 (function buildBar() {
   const canvas = document.getElementById('barChart');
@@ -379,10 +383,10 @@ const scrumData = [
   if (!tbody) return;
   tbody.innerHTML = scrumData.map(row =>
     `<tr>
-      <td><span class="date-badge">${row.date}</span></td>
-      <td>${row.problem}</td>
-      <td>${row.solution}</td>
-      <td>${row.result}</td>
+      <td><span class="date-badge">${escapeHtml(row.date)}</span></td>
+      <td>${escapeHtml(row.problem)}</td>
+      <td>${escapeHtml(row.solution)}</td>
+      <td>${escapeHtml(row.result)}</td>
     </tr>`
   ).join('');
 })();
@@ -403,14 +407,12 @@ const scrumData = [
       if (problem.includes(kw) || solution.includes(kw)) techSet.add(tech);
     });
   });
-  const techs = [...techSet, 'Python'].slice(0, 6);
+  techSet.add('Python');
+  const techs = [...techSet].slice(0, 6);
 
   const achievements = scrumData
     .map(s => s.result)
-    .filter(r => /\d+[%회초s→]/.test(r));
-
-  const escapeHtml = str =>
-    str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    .filter(r => /\d+[%회초→]/.test(r));
 
   card.innerHTML = `
     <h3>풀스택 웹 서비스 개발 프로젝트</h3>
