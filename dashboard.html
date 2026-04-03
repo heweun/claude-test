@@ -329,8 +329,9 @@
       cursor: pointer;
     }
 
-    .bar-stack:hover {
-      opacity: .85;
+    .bar-seg:hover {
+      opacity: .75;
+      cursor: pointer;
     }
 
     .bar-seg {
@@ -727,9 +728,8 @@
       });
       const tipLabels = ['정답', '시간초과', '모르겠음', '오답'];
       const makeBar = (pct, isOt) => {
-        const tip = tipLabels.map((l, i) => `${l}: ${pct[i]}%`).join('\n');
-        return `<div class="bar-stack" data-tip="${tip}">${pct.map((p, i) =>
-          `<div class="bar-seg" style="width:${p}%;background:${(isOt ? colorsOt : colors)[i]}"></div>`
+        return `<div class="bar-stack">${pct.map((p, i) =>
+          `<div class="bar-seg" data-tip="${tipLabels[i]}: ${p}%" style="width:${p}%;background:${(isOt ? colorsOt : colors)[i]}"></div>`
         ).join('')}</div>`;
       };
 
@@ -751,14 +751,14 @@
 
       // 커스텀 툴팁
       const tooltip = document.getElementById('barTooltip');
-      document.querySelectorAll('.bar-stack').forEach(el => {
+      document.querySelectorAll('.bar-seg').forEach(el => {
         el.addEventListener('mouseenter', e => {
-          tooltip.innerHTML = el.dataset.tip.split('\n').join('<br>');
+          tooltip.textContent = el.dataset.tip;
           tooltip.style.display = 'block';
         });
         el.addEventListener('mousemove', e => {
           tooltip.style.left = (e.clientX + 14) + 'px';
-          tooltip.style.top  = (e.clientY - 10) + 'px';
+          tooltip.style.top = (e.clientY - 10) + 'px';
         });
         el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
       });
