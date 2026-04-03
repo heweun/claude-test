@@ -267,28 +267,9 @@
       display: block;
     }
 
-    #bar-ot .bar-wrap {
-      background: #f0f5ff;
+    #bar-combined .bar-wrap {
+      background: #f8f9ff;
       border-left-color: #0f3460;
-    }
-
-    #bar-final .bar-wrap {
-      background: #fff5f6;
-      border-left-color: #e94560;
-    }
-
-    .exam-bar-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    #bar-ot .exam-bar-title {
-      color: #0f3460;
-    }
-
-    #bar-final .exam-bar-title {
-      color: #e94560;
     }
 
     .bar-legend {
@@ -522,10 +503,9 @@
       </div>
     </div>
 
-    <!-- OT 바 차트 -->
-    <div class="exam-bar" id="bar-ot">
+    <!-- 과목별 OT/최종 비교 차트 -->
+    <div class="exam-bar" id="bar-combined">
       <div class="bar-wrap">
-        <div class="exam-bar-title">OT 시험</div>
         <div class="bar-legend">
           <div class="legend-item">
             <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
@@ -540,29 +520,7 @@
             <div class="legend-dot" style="background:#f87171;"></div><span>오답</span>
           </div>
         </div>
-        <canvas id="barChartOt"></canvas>
-      </div>
-    </div>
-
-    <!-- 최종 바 차트 -->
-    <div class="exam-bar" id="bar-final">
-      <div class="bar-wrap">
-        <div class="exam-bar-title">최종 시험</div>
-        <div class="bar-legend">
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#22c55e;"></div><span>정답</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-dot" style="background:#f87171;"></div><span>오답</span>
-          </div>
-        </div>
-        <canvas id="barChartFinal"></canvas>
+        <canvas id="barChartCombined"></canvas>
       </div>
     </div>
   </div>
@@ -671,7 +629,7 @@
       },
     });
 
-    function buildBarChart(canvasId, subjects) {
+    function buildCombinedChart(canvasId, otSubjects, finalSubjects) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
       const toPercent = s => {
@@ -684,16 +642,27 @@
           wrong: +(s.wrong / total * 100).toFixed(1),
         };
       };
-      const pct = subjects.map(toPercent);
+      const pctOt = otSubjects.map(toPercent);
+      const pctFinal = finalSubjects.map(toPercent);
+      const labels = [];
+      const data = { correct: [], timeout: [], unknown: [], wrong: [] };
+      otSubjects.forEach((s, i) => {
+        labels.push(s.name + ' OT');
+        labels.push(s.name + ' 최종');
+        ['correct', 'timeout', 'unknown', 'wrong'].forEach(k => {
+          data[k].push(pctOt[i][k]);
+          data[k].push(pctFinal[i][k]);
+        });
+      });
       new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
-          labels: subjects.map(s => s.name),
+          labels,
           datasets: [
-            { label: '정답', data: pct.map(p => p.correct), backgroundColor: '#22c55e' },
-            { label: '시간초과', data: pct.map(p => p.timeout), backgroundColor: '#facc15' },
-            { label: '모르겠음', data: pct.map(p => p.unknown), backgroundColor: '#94a3b8' },
-            { label: '오답', data: pct.map(p => p.wrong), backgroundColor: '#f87171' },
+            { label: '정답', data: data.correct, backgroundColor: '#22c55e' },
+            { label: '시간초과', data: data.timeout, backgroundColor: '#facc15' },
+            { label: '모르겠음', data: data.unknown, backgroundColor: '#94a3b8' },
+            { label: '오답', data: data.wrong, backgroundColor: '#f87171' },
           ],
         },
         options: {
@@ -711,8 +680,7 @@
       });
     }
 
-    buildBarChart('barChartOt', examData.ot.subjects);
-    buildBarChart('barChartFinal', examData.final.subjects);
+    buildCombinedChart('barChartCombined', examData.ot.subjects, examData.final.subjects);
 
     /* ── 데일리 스크럼 데이터 ── */
     const scrumData = [
