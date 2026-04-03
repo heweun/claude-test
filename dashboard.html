@@ -267,29 +267,6 @@
   <div class="portfolio-card" id="portfolioCard"></div>
 </div>
 
-<!-- ── 데일리 스크럼 ── -->
-<div class="section">
-  <div class="section-title">데일리 스크럼</div>
-  <div class="scrum-table-wrap">
-    <table class="scrum-table">
-      <thead>
-        <tr>
-          <th>날짜</th>
-          <th>문제</th>
-          <th>해결방안</th>
-          <th>결과</th>
-        </tr>
-      </thead>
-      <tbody id="scrumBody"></tbody>
-    </table>
-  </div>
-  <div class="scrum-pagination" id="scrumPagination">
-    <button id="scrumPrev" onclick="moveScrumPage(-1)">이전</button>
-    <span class="page-info" id="scrumPageInfo"></span>
-    <button id="scrumNext" onclick="moveScrumPage(1)">다음</button>
-  </div>
-</div>
-
 <!-- ── 시험 결과 ── -->
 <div class="section">
   <div class="section-title">시험 결과</div>
@@ -332,6 +309,29 @@
       </div>
       <canvas id="barChartFinal"></canvas>
     </div>
+  </div>
+</div>
+
+<!-- ── 데일리 스크럼 ── -->
+<div class="section">
+  <div class="section-title">데일리 스크럼</div>
+  <div class="scrum-table-wrap">
+    <table class="scrum-table">
+      <thead>
+        <tr>
+          <th>날짜</th>
+          <th>문제</th>
+          <th>해결방안</th>
+          <th>결과</th>
+        </tr>
+      </thead>
+      <tbody id="scrumBody"></tbody>
+    </table>
+  </div>
+  <div class="scrum-pagination" id="scrumPagination">
+    <button id="scrumPrev" onclick="moveScrumPage(-1)">이전</button>
+    <span class="page-info" id="scrumPageInfo"></span>
+    <button id="scrumNext" onclick="moveScrumPage(1)">다음</button>
   </div>
 </div>
 
@@ -609,6 +609,9 @@ window.onbeforeprint = function() {
   }
   // 스크럼 전체 행 렌더링 (페이지네이션 무시)
   renderScrumRows(scrumData);
+  // 인라인 스타일이 @media print보다 우선순위가 높으므로 직접 숨김
+  const pagination = document.getElementById('scrumPagination');
+  if (pagination) pagination.style.display = 'none';
 };
 window.onafterprint = function() {
   // 인쇄 완료 후 현재 페이지로 복원
