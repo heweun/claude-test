@@ -80,14 +80,19 @@
       }
 
       .bar-wrap,
-      .scrum-table-wrap,
       .radar-wrap {
         break-inside: avoid;
       }
 
-      /* 섹션 제목, 점수 카드 직후 페이지 넘김 방지 */
-      .section-title { break-after: avoid; }
-      .exam-score-cards { break-after: avoid; }
+      /* 섹션 제목 직후 페이지 넘김 방지 */
+      .section-title {
+        break-after: avoid;
+      }
+
+      /* 스크럼 행: 각 행이 자연스럽게 페이지를 넘을 수 있도록 */
+      .scrum-table tr {
+        break-inside: avoid;
+      }
 
       header {
         background: #1a1a2e !important;
@@ -98,6 +103,7 @@
       /* 비활성 시험 탭도 모두 출력 */
       .exam-bar {
         display: block !important;
+        break-inside: avoid;
       }
 
       .exam-bar+.exam-bar {
@@ -124,11 +130,18 @@
       /* 바 차트만 높이 제한 (레이더는 정사각형 유지) */
       .bar-wrap canvas {
         max-height: 200px !important;
+        width: 100% !important;
       }
 
       /* 레이더 차트: 비율 유지하면서 크기 제한 */
       .radar-chart-container {
         max-width: 360px !important;
+      }
+
+      /* 섹션 간 여백 */
+      .section {
+        margin-top: 40px;
+        margin-bottom: 40px;
       }
     }
 
@@ -260,6 +273,12 @@
       padding: 28px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
       border-left: 5px solid transparent;
+      overflow: hidden;
+    }
+
+    .bar-wrap canvas {
+      width: 100% !important;
+      display: block;
     }
 
     #bar-ot .bar-wrap {
