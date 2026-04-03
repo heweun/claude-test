@@ -123,6 +123,42 @@
     .score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
     .score-ot   .score { color: #0f3460; }
     .score-final .score { color: #e94560; }
+    /* ── 시험 탭 ── */
+    .exam-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .exam-tab {
+      padding: 10px 28px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+    }
+    .exam-tab.active {
+      border-color: #0f3460;
+      background: #0f3460;
+      color: #fff;
+    }
+    .exam-panel { display: none; }
+    .exam-panel.active { display: block; }
+    .exam-score-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .exam-score-card .label { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
+    .exam-score-card .score { font-size: 3rem; font-weight: 800; line-height: 1; }
+    .exam-score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
+    .panel-ot  .score { color: #0f3460; }
+    .panel-final .score { color: #e94560; }
     .bar-wrap {
       background: #fff;
       border-radius: 16px;
@@ -255,26 +291,46 @@
 <!-- ── 시험 결과 ── -->
 <div class="section">
   <div class="section-title">시험 결과</div>
-  <div class="score-cards">
-    <div class="score-card score-ot">
-      <div class="label">OT 시험</div>
+
+  <div class="exam-tabs">
+    <button class="exam-tab active" onclick="switchExamTab('ot', this)">OT 시험</button>
+    <button class="exam-tab"        onclick="switchExamTab('final', this)">최종 시험</button>
+  </div>
+
+  <!-- OT 패널 -->
+  <div class="exam-panel panel-ot active" id="panel-ot">
+    <div class="exam-score-card">
+      <div class="label">OT 시험 총점</div>
       <div class="score">62</div>
       <div class="total">/ 100점</div>
     </div>
-    <div class="score-card score-final">
-      <div class="label">최종 시험</div>
+    <div class="bar-wrap">
+      <div class="bar-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+      </div>
+      <canvas id="barChartOt"></canvas>
+    </div>
+  </div>
+
+  <!-- 최종 시험 패널 -->
+  <div class="exam-panel panel-final" id="panel-final">
+    <div class="exam-score-card">
+      <div class="label">최종 시험 총점</div>
       <div class="score">88</div>
       <div class="total">/ 100점</div>
     </div>
-  </div>
-  <div class="bar-wrap">
-    <div class="bar-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
-      <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
-      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+    <div class="bar-wrap">
+      <div class="bar-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+      </div>
+      <canvas id="barChartFinal"></canvas>
     </div>
-    <canvas id="barChart"></canvas>
   </div>
 </div>
 
@@ -335,23 +391,34 @@ const radarData = Object.freeze({
   });
 })();
 
-/* ── 시험 결과 데이터 ── */
+/* ── 시험 결과 데이터 (OT / 최종 분리) ── */
 const examData = Object.freeze({
-  ot: 62,
-  final: 88,
-  subjects: [
-    { name: 'Python 기초',  correct: 8, timeout: 2, unknown: 1, wrong: 1 },
-    { name: '자료구조',      correct: 6, timeout: 3, unknown: 2, wrong: 2 },
-    { name: '데이터베이스',  correct: 7, timeout: 1, unknown: 1, wrong: 3 },
-    { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
-    { name: '알고리즘',      correct: 5, timeout: 4, unknown: 2, wrong: 1 },
-  ],
+  ot: {
+    score: 62,
+    subjects: [
+      { name: 'Python 기초',  correct: 5, timeout: 3, unknown: 2, wrong: 2 },
+      { name: '자료구조',      correct: 4, timeout: 3, unknown: 3, wrong: 3 },
+      { name: '데이터베이스',  correct: 5, timeout: 2, unknown: 2, wrong: 3 },
+      { name: '웹 프레임워크', correct: 6, timeout: 2, unknown: 1, wrong: 3 },
+      { name: '알고리즘',      correct: 3, timeout: 4, unknown: 3, wrong: 2 },
+    ],
+  },
+  final: {
+    score: 88,
+    subjects: [
+      { name: 'Python 기초',  correct: 8, timeout: 2, unknown: 1, wrong: 1 },
+      { name: '자료구조',      correct: 6, timeout: 3, unknown: 2, wrong: 2 },
+      { name: '데이터베이스',  correct: 7, timeout: 1, unknown: 1, wrong: 3 },
+      { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
+      { name: '알고리즘',      correct: 5, timeout: 4, unknown: 2, wrong: 1 },
+    ],
+  },
 });
 
-(function buildBar() {
-  const canvas = document.getElementById('barChart');
+function buildBarChart(canvasId, subjects) {
+  const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const toPercent = (s) => {
+  const toPercent = s => {
     const total = s.correct + s.timeout + s.unknown + s.wrong;
     return {
       correct: +(s.correct / total * 100).toFixed(1),
@@ -360,11 +427,11 @@ const examData = Object.freeze({
       wrong:   +(s.wrong   / total * 100).toFixed(1),
     };
   };
-  const pct = examData.subjects.map(toPercent);
+  const pct = subjects.map(toPercent);
   new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
-      labels: examData.subjects.map(s => s.name),
+      labels: subjects.map(s => s.name),
       datasets: [
         { label: '정답',    data: pct.map(p => p.correct), backgroundColor: '#22c55e' },
         { label: '시간초과', data: pct.map(p => p.timeout), backgroundColor: '#facc15' },
@@ -385,7 +452,17 @@ const examData = Object.freeze({
       },
     },
   });
-})();
+}
+
+buildBarChart('barChartOt',    examData.ot.subjects);
+buildBarChart('barChartFinal', examData.final.subjects);
+
+function switchExamTab(tab, btn) {
+  document.querySelectorAll('.exam-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.exam-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
 
 /* ── 데일리 스크럼 데이터 ── */
 const scrumData = [
