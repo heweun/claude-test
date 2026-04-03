@@ -85,9 +85,42 @@
       flex-shrink: 0;
     }
 
+    /* ── 시험 결과 ── */
+    .score-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .score-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      text-align: center;
+    }
+    .score-card .label { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
+    .score-card .score { font-size: 3rem; font-weight: 800; line-height: 1; }
+    .score-card .total { font-size: 0.85rem; color: #999; margin-top: 4px; }
+    .score-ot   .score { color: #0f3460; }
+    .score-final .score { color: #e94560; }
+    .bar-wrap {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    .bar-legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
     @media (max-width: 640px) {
       header { padding: 24px 20px; }
       .section { padding: 0 12px; }
+      .score-cards { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -119,6 +152,32 @@
         <span>수강 후</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ── 시험 결과 ── -->
+<div class="section">
+  <div class="section-title">📝 시험 결과</div>
+  <div class="score-cards">
+    <div class="score-card score-ot">
+      <div class="label">OT 시험</div>
+      <div class="score">62</div>
+      <div class="total">/ 100점</div>
+    </div>
+    <div class="score-card score-final">
+      <div class="label">최종 시험</div>
+      <div class="score">88</div>
+      <div class="total">/ 100점</div>
+    </div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div><span>정답</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#facc15;"></div><span>시간초과</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;"></div><span>모르겠음</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f87171;"></div><span>오답</span></div>
+    </div>
+    <canvas id="barChart"></canvas>
   </div>
 </div>
 
@@ -170,6 +229,58 @@ const radarData = {
           grid: { color: 'rgba(0,0,0,.08)' },
           angleLines: { color: 'rgba(0,0,0,.08)' },
         },
+      },
+    },
+  });
+})();
+
+/* ── 시험 결과 데이터 ── */
+const examData = {
+  ot: 62,
+  final: 88,
+  subjects: [
+    { name: 'Python 기초',  correct: 8, timeout: 2, unknown: 1, wrong: 1 },
+    { name: '자료구조',      correct: 6, timeout: 3, unknown: 2, wrong: 2 },
+    { name: '데이터베이스',  correct: 7, timeout: 1, unknown: 1, wrong: 3 },
+    { name: '웹 프레임워크', correct: 9, timeout: 1, unknown: 0, wrong: 2 },
+    { name: '알고리즘',      correct: 5, timeout: 4, unknown: 2, wrong: 1 },
+  ],
+};
+
+(function buildBar() {
+  const canvas = document.getElementById('barChart');
+  if (!canvas) return;
+  const toPercent = (s) => {
+    const total = s.correct + s.timeout + s.unknown + s.wrong;
+    return {
+      correct: +(s.correct / total * 100).toFixed(1),
+      timeout: +(s.timeout / total * 100).toFixed(1),
+      unknown: +(s.unknown / total * 100).toFixed(1),
+      wrong:   +(s.wrong   / total * 100).toFixed(1),
+    };
+  };
+  const pct = examData.subjects.map(toPercent);
+  new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: examData.subjects.map(s => s.name),
+      datasets: [
+        { label: '정답',    data: pct.map(p => p.correct), backgroundColor: '#22c55e' },
+        { label: '시간초과', data: pct.map(p => p.timeout), backgroundColor: '#facc15' },
+        { label: '모르겠음', data: pct.map(p => p.unknown), backgroundColor: '#94a3b8' },
+        { label: '오답',    data: pct.map(p => p.wrong),   backgroundColor: '#f87171' },
+      ],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } },
+      },
+      scales: {
+        x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,.06)' } },
+        y: { stacked: true, grid: { display: false } },
       },
     },
   });
