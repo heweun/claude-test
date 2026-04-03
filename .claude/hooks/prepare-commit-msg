@@ -1,9 +1,21 @@
 #!/bin/bash
 # prepare-commit-msg
-# git 훅: 모든 커밋 메시지에 Co-Authored-By 자동 삽입
+# git 훅: Claude가 실행한 커밋에만 Co-Authored-By 자동 삽입
+# 플래그 파일(.git/CLAUDE_COMMITTING)이 있을 때만 동작
 
 COMMIT_MSG_FILE="$1"
 COMMIT_SOURCE="$2"  # message | template | merge | squash | commit
+
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+FLAG="$GIT_DIR/CLAUDE_COMMITTING"
+
+# 플래그 없으면 사용자 직접 커밋 → 스킵
+if [ ! -f "$FLAG" ]; then
+  exit 0
+fi
+
+# 플래그 즉시 삭제 (한 번만 사용)
+rm -f "$FLAG"
 
 CO_AUTHOR="Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
@@ -19,6 +31,6 @@ fi
 
 # 커밋 메시지 끝에 빈 줄 + Co-Author 추가
 if ! printf "\n%s\n" "$CO_AUTHOR" >> "$COMMIT_MSG_FILE"; then
-  echo "⚠️ Co-Author 삽입 실패: $COMMIT_MSG_FILE 쓰기 오류" >&2
+  echo "Co-Author 삽입 실패: $COMMIT_MSG_FILE 쓰기 오류" >&2
   exit 1
 fi

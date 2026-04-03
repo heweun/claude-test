@@ -81,13 +81,15 @@ refactor: 유저 서비스 의존성 분리
 
 ### 4단계: 커밋 실행
 
+Co-Author 훅이 Claude 커밋임을 인식할 수 있도록 플래그 파일을 먼저 생성합니다:
+
 ```bash
-git commit -m "type(scope): 한국어 설명"
+touch .git/CLAUDE_COMMITTING && git commit -m "type(scope): 한국어 설명"
 ```
 
 멀티라인이 필요한 경우:
 ```bash
-git commit -m "$(cat <<'EOF'
+touch .git/CLAUDE_COMMITTING && git commit -m "$(cat <<'EOF'
 type(scope): 한국어 요약
 
 - 세부 변경사항 1
