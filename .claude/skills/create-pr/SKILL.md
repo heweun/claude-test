@@ -3,7 +3,7 @@ name: create-pr
 description: 현재 브랜치의 커밋 히스토리와 diff를 분석하여 PR 템플릿을 자동 생성하고, 코드 리뷰 에이전트를 실행한 뒤 gh pr create로 PR을 생성합니다.
 argument-hint: [base-branch]
 disable-model-invocation: true
-allowed-tools: Bash(git *, gh *), Read, Glob, Grep
+allowed-tools: Bash(git *, gh *), Read, Glob, Grep, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__javascript_tool
 ---
 
 # /create-pr — PR 자동 생성 스킬
@@ -78,16 +78,29 @@ base 브랜치를 결정합니다 (기본: `main`, 인자로 지정 가능):
 ## Notes
 [리뷰어 참고사항, 특이한 구현 결정, 향후 개선 계획 등]
 
-<!-- 프론트엔드 변경 감지 시 추가 -->
-## Screenshots
-| Before | After |
-|--------|-------|
-| <!-- 스크린샷 --> | <!-- 스크린샷 --> |
-
 <!-- 백엔드 변경 감지 시 추가 -->
 ## Architecture / Sequence
 <!-- 시퀀스 다이어그램 또는 아키텍처 변경사항 설명 -->
 ```
+
+### 4.5단계: 프론트엔드 스크린샷 캡처 (프론트엔드 감지 시에만)
+
+프론트엔드 파일이 변경된 경우, 브라우저 자동화로 실제 스크린샷을 캡처합니다:
+
+1. `mcp__claude-in-chrome__tabs_context_mcp`로 현재 탭 확인
+2. `mcp__claude-in-chrome__tabs_create_mcp`로 새 탭 생성
+3. 변경된 HTML 파일 경로를 `file://` URL로 변환하여 `mcp__claude-in-chrome__navigate`로 열기
+   - 예: `file:///C:/Users/804/Desktop/claude-test/dashboard.html`
+4. `mcp__claude-in-chrome__computer`로 스크린샷 캡처
+5. PR 본문 Screenshots 섹션에 아래 형식으로 삽입:
+
+```markdown
+## Screenshots
+![After](캡처된_이미지_설명)
+```
+
+> 로컬 서버가 필요한 경우(React/Vue 등): `localhost` URL 사용. 서버가 없으면 `file://` 경로로 시도.
+> 캡처 실패 시: Screenshots 섹션을 생략하고 PR 생성을 계속합니다.
 
 ### 5단계: 코드 리뷰 에이전트 실행
 
